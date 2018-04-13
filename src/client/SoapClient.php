@@ -8,53 +8,55 @@ namespace ghiyam\apix\client;
 
 
 use ghiyam\apix\exceptions\ClientRequestException;
-use yii\base\BaseObject;
 use yii\base\InvalidConfigException;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
 use yii\helpers\UnsetArrayValue;
 
 
-class SoapClient extends BaseObject
+/**
+ * Class SoapClient
+ *
+ * @property \SoapClient $connector SOAP client
+ *
+ * @package ghiyam\apix\client
+ */
+class SoapClient extends Client
 {
-
-
-    /**
-     * @var array
-     */
-    public $credentials =
-        [
-            'username' => '',
-            'password' => '',
-        ];
-
-
-    /**
-     * @var array
-     */
-    public $params =
-        [
-            'namespaces' => [],
-            'client'     => [],
-        ];
-
-
-    /**
-     * @var \SoapClient
-     */
-    protected $connector;
 
 
     /**
      * @var string
      */
-    private $_requestOriginal;
+    public $username = "";
 
 
     /**
-     * @var mixed
+     * @var string
      */
-    private $_responseOriginal;
+    public $password = "";
+
+
+    /**
+     * @var array
+     */
+    public $namespaces =
+        [
+            'header'   => '',
+            'envelope' => ''
+        ];
+
+
+    /**
+     * @var array
+     */
+    public $soap =
+        [
+            'location'     => '',
+            'uri'          => '',
+            'soap_version' => SOAP_1_1,
+            'encoding'     => 'UTF-8',
+        ];
 
 
     /**
@@ -63,47 +65,67 @@ class SoapClient extends BaseObject
     public function init()
     {
         parent::init();
-        if (empty($this->credentials['username'])) {
-            throw new InvalidConfigException('Property `credentials[\'username\']` must be set.');
+        if (empty($this->namespaces)) {
+            throw new InvalidConfigException('Property `namespaces` must be set.');
         }
-        if (empty($this->credentials['password'])) {
-            throw new InvalidConfigException('Property `credentials[\'password\']` must be set.');
+        if (empty($this->soap)) {
+            throw new InvalidConfigException('Property `soap` must be set.');
         }
-        if (empty($this->params['namespaces'])) {
-            throw new InvalidConfigException('Property `params[\'namespaces\']` must be set.');
-        }
-        if (empty($this->params['client'])) {
-            throw new InvalidConfigException('Property `params[\'client\']` must be set.');
-        }
-        $this->connector = new \SoapClient(null, $this->params['client']);
+        $this->connector = new \SoapClient(null, $this->soap);
     }
 
 
     /**
-     * @param string $method
-     * @param array  $params
-     *
-     * @return array|mixed|null
-     * @throws ClientRequestException
+     * {@inheritdoc}
      */
-    public function sendRequest($method = "", $params = [])
+    public function sendRequest($originalRequest)
     {
-        $this->_requestOriginal = $this->prepareRequest($method, $params);
-        $this->_responseOriginal = $this->connector->__doRequest(
-            $this->_requestOriginal,
-            $this->params['client']['location'],
+        return $this->connector->__doRequest(
+            $originalRequest,
+            $this->soap['location'],
             null,
-            $this->params['client']['soap_version']
+            $this->soap['soap_version']
         );
-        return $this->prepareResponse();
     }
 
 
     /**
-     * @param string $method
-     * @param array  $params
-     *
-     * @return string
+     * {@inheritdoc}
+     */
+    protected function prepareResponse($originalResponse)
+    {
+        $responseXML = new \SimpleXMLElement(preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $originalResponse));
+        if ($responseXML->xpath('//return') !== null) {
+            $array = Json::decode(Json::encode((array)$responseXML->xpath('//return')));
+            if (!empty($array[0]['row'])) {
+                return $array[0]['row'];
+            }
+            elseif (isset($array[0][0])) {
+                return $array[0][0];
+            }
+            else {
+                return null;
+            }
+        }
+        elseif ($responseXML->xpath('soapenvBody')[0] !== null) {
+            $response = (array)$responseXML->xpath('soapenvBody')[0]->children()->children();
+            // если получено сообщение об ошибке
+            if (ArrayHelper::isIn('faultcode', array_keys($response))) {
+                throw new ClientRequestException(
+                    ArrayHelper::getValue($response, 'faultstring') . ": " .
+                    ArrayHelper::getValue($response, 'detail')->children()->exceptionName->__toString()
+                );
+            }
+            else {
+                return Json::decode(Json::encode((array)$response));
+            }
+        }
+        return null;
+    }
+
+
+    /**
+     * {@inheritdoc}
      */
     protected function prepareRequest($method = "", $params = [])
     {
@@ -120,7 +142,7 @@ class SoapClient extends BaseObject
         // envelope
         $envelope = $request->createElement('soapenv:Envelope');
         $envelopeAttribute = $request->createAttribute("xmlns:soapenv");
-        $envelopeAttribute->value = $this->params['namespaces']['envelope'];
+        $envelopeAttribute->value = $this->namespaces['envelope'];
         $envelope->appendChild($envelopeAttribute);
         // envelope header
         $envelope->appendChild($this->getRequestHeader($request));
@@ -143,9 +165,9 @@ class SoapClient extends BaseObject
         $header = $envelope->createElement('soapenv:Header');
         $headerContext = $envelope->createElement('heads:credentials');
         $headerContextParam = $envelope->createAttribute("xmlns:heads");
-        $headerContextParam->value = $this->params['namespaces']['header'];
+        $headerContextParam->value = $this->namespaces['header'];
         $headerContext->appendChild($headerContextParam);
-        foreach ($this->credentials as $key => $value) {
+        foreach ($this->headers as $key => $value) {
             $headerArgEl = $envelope->createElement('heads:' . $key, $value);
             $headerContext->appendChild($headerArgEl);
         }
@@ -188,45 +210,5 @@ class SoapClient extends BaseObject
         return $body;
     }
 
-
-    /**
-     * @return mixed|null
-     * @throws ClientRequestException
-     */
-    protected function prepareResponse()
-    {
-        if ($this->getResponseXML()->xpath('//return') !== null) {
-            $array = Json::decode(Json::encode((array)$this->getResponseXML()->xpath('//return')));
-            if (!empty($array[0]['row'])) {
-                return $array[0]['row'];
-            }
-            elseif (isset($array[0][0])) {
-                return $array[0][0];
-            }
-            else {
-                return null;
-            }
-        }
-        elseif ($this->getResponseXML()->xpath('soapenvBody')[0] !== null) {
-            $response = (array)$this->getResponseXML()->xpath('soapenvBody')[0]->children()->children();
-            // если получено сообщение об ошибке
-            if (ArrayHelper::isIn('faultcode', array_keys($response))) {
-                throw new ClientRequestException(
-                    ArrayHelper::getValue($response, 'faultstring') . ": " .
-                    ArrayHelper::getValue($response, 'detail')->children()->exceptionName->__toString()
-                );
-            }
-            else {
-                return Json::decode(Json::encode((array)$response));
-            }
-        }
-        return null;
-    }
-
-
-    protected function getResponseXML()
-    {
-        return new \SimpleXMLElement(preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $this->_responseOriginal));
-    }
 
 }

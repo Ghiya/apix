@@ -28,7 +28,7 @@ class Services extends BaseObject
     /**
      * @param array $query
      *
-     * @return mixed|null|string
+     * @return null|array|string
      * @throws ClientRequestException
      * @throws InvalidConfigException
      * @throws \ErrorException
@@ -36,57 +36,55 @@ class Services extends BaseObject
     public function fetch($query = [])
     {
         $queue = QueueBuilder::build($query);
-        $fetchResult = null;
         while (!$queue->isEmpty()) {
-            /** @var ComposedQuery|Query $query */
-            $query = $queue->dequeue();
             // send query
-            $fetchResult = $this->sendQuery($query);
-            // composed query
-            if ($query instanceof ComposedQuery) {
+            $fetchedQuery = $this->fetchQueryQueue($queue);
+            // if composed query
+            if ($fetchedQuery->isComposed()) {
                 // several queries
-                if (ArrayHelper::isIndexed($query->join)) {
+                if (ArrayHelper::isIndexed($fetchedQuery->join)) {
                     $joinResult = "";
-                    foreach ($query->join as $joinedQuery) {
+                    foreach ($fetchedQuery->join as $joinedQuery) {
                         $joinResult .= " " .
                             $this
                                 ->fetchComposed(
-                                    $query->joinIndex,
+                                    $fetchedQuery->joinIndex,
                                     $joinedQuery,
-                                    $fetchResult
+                                    $fetchedQuery->fetched
                                 );
                     }
-                    return $joinResult;
+                    return trim($joinResult);
                 }
                 // single query
                 else {
                     return
                         $this
                             ->fetchComposed(
-                                $query->joinIndex,
-                                $query->join,
-                                $fetchResult
+                                $fetchedQuery->joinIndex,
+                                $fetchedQuery->join,
+                                $fetchedQuery->fetched
                             );
                 }
             }
         }
-        return $fetchResult;
+        return isset($fetchedQuery) ? $fetchedQuery->fetched : null;
     }
 
 
     /**
      * @param array $joinIndex
      * @param array $joinQuery
-     * @param       $fetchResult
+     * @param array $fetchResult
      *
-     * @return mixed|null|string
+     * @return null|array|string
      * @throws ClientRequestException
      * @throws InvalidConfigException
      * @throws \ErrorException
      */
-    protected function fetchComposed($joinIndex = [], $joinQuery = [], $fetchResult)
+    protected function fetchComposed($joinIndex = [], $joinQuery = [], $fetchResult = [])
     {
         if (isset($fetchResult)) {
+            $joinParams = [];
             if (preg_match("/\*/i", $joinIndex[1])) {
                 $joinParams =
                     [
@@ -98,13 +96,24 @@ class Services extends BaseObject
             }
             else {
                 if (isset($fetchResult[$joinIndex[1]])) {
-                    $joinParams =
-                        [
-                            'params' =>
-                                [
-                                    $joinIndex[0] => $fetchResult[$joinIndex[1]]
-                                ]
-                        ];
+                    // search in method
+                    if ( preg_match("/{\w}+/i", $joinQuery['method'])) {
+
+                    }
+                    // search in params
+                    /*elseif( preg_match("/{\w}+/i", implode(":", array_values($joinQuery['params']))) ) {
+
+                    }*/
+                    // join by default
+                    else {
+                        $joinParams =
+                            [
+                                'params' =>
+                                    [
+                                        $joinIndex[0] => $fetchResult[$joinIndex[1]]
+                                    ]
+                            ];
+                    }
                 }
                 else {
                     throw new \ErrorException("Improper `joinIndex` value.");
@@ -123,18 +132,18 @@ class Services extends BaseObject
 
 
     /**
-     * @param $query
+     * @param \SplQueue $queue
      *
-     * @return mixed|null
+     * @return ComposedQuery|Query
      * @throws ClientRequestException
      * @throws InvalidConfigException
      */
-    protected function sendQuery($query)
+    protected function fetchQueryQueue(\SplQueue $queue)
     {
         if (empty($this->connection)) {
             throw new InvalidConfigException("Property `connection` must be set.");
         }
-        return $this->connection->send($query);
+        return $this->connection->sendQuery($queue->dequeue());
     }
 
 }

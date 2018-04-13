@@ -11,16 +11,6 @@ class ComposedQuery extends Query
 {
 
 
-    /**
-     * @var string
-     */
-    public $joinIndex = [];
-
-
-    /**
-     * @var array
-     */
-    public $join = [];
 
 
 }

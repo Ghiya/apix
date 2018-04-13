@@ -8,11 +8,16 @@ namespace ghiyam\apix\query;
 
 
 use yii\base\BaseObject;
-use yii\helpers\ArrayHelper;
 
 
 class Query extends BaseObject
 {
+
+
+    const TYPE_SIMPLE = 0;
+
+
+    const TYPE_COMPOSED = 1;
 
 
     /**
@@ -28,35 +33,67 @@ class Query extends BaseObject
 
 
     /**
+     * @var array
+     */
+    public $client = [];
+
+
+    /**
+     * @var array
+     */
+    public $join = [];
+
+
+    /**
+     * @var string|array
+     */
+    public $joinResult;
+
+
+    /**
+     * @var string
+     */
+    public $joinIndex = [];
+
+
+    /**
      * @var null|string|callable
      */
     public $result;
 
 
     /**
-     * @param array $response
-     *
-     * @return $this
+     * @var string|array|bool|null
      */
-    public function buildOn($response = [])
+    public $fetched;
+
+
+    /**
+     * @return int
+     */
+    public function getType()
     {
-        if (!empty($response) && is_array($response)) {
-            foreach ($this->params as $key => $value) {
-                // replace with value from the result
-                if (preg_match("/{\w+}/i", $value)) {
-                    $replacedParam = substr($value, 1, strlen($value) - 2);
-                    $replacedValue = ArrayHelper::getValue($response, $replacedParam);
-                    if (!empty($replacedValue)) {
-                        $this->params[$key] = str_replace($value, $replacedValue, $this->params[$key]);
-                    }
-                }
-                // replace with the plain result
-                elseif (preg_match("/\*/i", $value)) {
-                    $this->params[$key] = $response;
-                }
-            }
-        }
-        return $this;
+        return
+            !empty($this->join) && !empty($this->joinIndex) ?
+                self::TYPE_COMPOSED : self::TYPE_SIMPLE;
+    }
+
+
+    /**
+     * @return bool
+     */
+    public function isComposed()
+    {
+        return $this->getType() == self::TYPE_COMPOSED;
+    }
+
+
+    /**
+     * @return bool
+     */
+    public function isSimple()
+    {
+        return $this->getType() == self::TYPE_SIMPLE;
     }
 
 }

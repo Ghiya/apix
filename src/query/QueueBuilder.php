@@ -6,6 +6,8 @@
 namespace ghiyam\apix\query;
 
 
+use yii\helpers\ArrayHelper;
+
 class QueueBuilder
 {
 
@@ -17,39 +19,56 @@ class QueueBuilder
 
 
     /**
-     * @param array $query
+     * @param array $queryParams
      *
      * @return \SplQueue
      */
-    public static function build($query = [])
+    public static function build($queryParams = [])
     {
         self::$queue = new \SplQueue();
         self::$queue->setIteratorMode(\SplDoublyLinkedList::IT_MODE_DELETE);
-        if (empty($query['join'])) {
-            self::buildSingle($query);
+        self::buildQueue($queryParams);
+        return self::$queue;
+    }
+
+
+    /**
+     * @param array $queryParams
+     */
+    protected static function buildQueue($queryParams = [])
+    {
+        if (empty($queryParams['join'])) {
+            self::addQuery($queryParams);
         }
         else {
-            self::buildComposed($query);
+            self::addQuery($queryParams);
+            self::join($queryParams['join']);
         }
-        return self::$queue;
     }
 
 
     /**
      * @param array $query
      */
-    protected static function buildSingle($query = [])
+    protected static function addQuery($query = [])
     {
         self::$queue->enqueue(new Query($query));
     }
 
 
     /**
-     * @param array $queries
+     * @param array $joinParams
      */
-    protected static function buildComposed($queries = [])
+    protected static function join($joinParams = [])
     {
-        self::$queue->enqueue(new ComposedQuery($queries));
+        if (ArrayHelper::isIndexed($joinParams)) {
+            foreach ($joinParams as $queryParams) {
+                self::buildQueue($queryParams);
+            }
+        }
+        else {
+            self::addQuery($joinParams);
+        }
     }
 
 }
