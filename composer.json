@@ -1,0 +1,31 @@
+{
+  "name": "ghiyam/apix",
+  "description": "Universal plugin for the external services API.",
+  "version": "v0.1.0",
+  "type": "yii2-extension",
+  "require": {
+    "php": ">=5.4.0"
+  },
+  "require-dev": {
+    "yiisoft/yii2": "~2.0.14",
+    "yiisoft/yii2-debug": "~2.0.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "ghiyam\apix\\": "src/"
+    }
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Ghiya",
+      "email": "ghiya@mikadze.me"
+    }
+  ],
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://asset-packagist.org"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+# IntelliJ project files
+.idea
+*.iml
+out
+gen
+
+# composer and its packages
+/vendor
+composer.phar
