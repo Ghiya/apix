@@ -6,51 +6,90 @@
 namespace ghiyam\apix;
 
 
+use ghiyam\apix\controller\ServiceController;
 use ghiyam\apix\exceptions\ClientRequestException;
 use ghiyam\apix\query\ComposedQuery;
 use ghiyam\apix\query\Query;
 use ghiyam\apix\query\QueueBuilder;
-use yii\base\BaseObject;
 use yii\base\InvalidConfigException;
+use yii\base\Module;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Json;
 
-
-class Services extends BaseObject
+/**
+ * Class APIx
+ *
+ * @property ServiceController $controller
+ *
+ * @package ghiyam\apix
+ */
+class APIx extends Module
 {
 
 
     /**
-     * @var Connection
+     * @var Service[]
      */
-    public $connection;
+    private $_services = [];
+
+    /**
+     * {@inheritdoc}
+     */
+    /*public function bootstrap($app)
+    {
+
+    }*/
+
+
+    /*public function init()
+    {
+        parent::init();
+        \Yii::configure($this, require __DIR__ . '/config/config.php');
+    }*/
 
 
     /**
-     * @param array $query
+     * @param array $serviceParams
+     *
+     * @return Service
+     */
+    protected function getServiceWithParams($serviceParams = [])
+    {
+        $instanceHash = md5(Json::encode($serviceParams));
+        if ( !isset($this->_services[$instanceHash]) ) {
+            $this->_services[$instanceHash] = new Service($serviceParams);
+        }
+        return $this->_services[$instanceHash];
+    }
+
+    /**
+     * @param array $queryParams
+     * @param array $serviceParams
      *
      * @return null|array|string
      * @throws ClientRequestException
      * @throws InvalidConfigException
      * @throws \ErrorException
      */
-    public function fetch($query = [])
+    public function fetch($queryParams = [], $serviceParams = [])
     {
-        $queue = QueueBuilder::build($query);
+        $queue = QueueBuilder::build($queryParams);
         while (!$queue->isEmpty()) {
             // send query
-            $fetchedQuery = $this->fetchQueryQueue($queue);
+            //$query = $this->fetchQueue($queue);
+            $query = $this->getServiceWithParams($serviceParams)->sendQuery($queue->dequeue());
             // if composed query
-            if ($fetchedQuery->isComposed()) {
+            if ($query->isComposed()) {
                 // several queries
-                if (ArrayHelper::isIndexed($fetchedQuery->join)) {
+                if (ArrayHelper::isIndexed($query->join)) {
                     $joinResult = "";
-                    foreach ($fetchedQuery->join as $joinedQuery) {
+                    foreach ($query->join as $joinedQuery) {
                         $joinResult .= " " .
                             $this
                                 ->fetchComposed(
-                                    $fetchedQuery->joinIndex,
+                                    $query->joinIndex,
                                     $joinedQuery,
-                                    $fetchedQuery->fetched
+                                    $query->fetched
                                 );
                     }
                     return trim($joinResult);
@@ -60,16 +99,19 @@ class Services extends BaseObject
                     return
                         $this
                             ->fetchComposed(
-                                $fetchedQuery->joinIndex,
-                                $fetchedQuery->join,
-                                $fetchedQuery->fetched
+                                $query->joinIndex,
+                                $query->join,
+                                $query->fetched
                             );
                 }
             }
         }
-        return isset($fetchedQuery) ? $fetchedQuery->fetched : null;
+        return isset($query) ? $query->fetched : null;
     }
 
+    /*protected function hasJoinIndex() {
+        return preg_match("/{\w}+/i", implode(":", array_values($joinQuery['params'])));
+    }*/
 
     /**
      * @param array $joinIndex
@@ -138,12 +180,12 @@ class Services extends BaseObject
      * @throws ClientRequestException
      * @throws InvalidConfigException
      */
-    protected function fetchQueryQueue(\SplQueue $queue)
+    protected function fetchQueue(\SplQueue $queue)
     {
         if (empty($this->connection)) {
             throw new InvalidConfigException("Property `connection` must be set.");
         }
-        return $this->connection->sendQuery($queue->dequeue());
+        return $this->getClientWithParams()->sendQuery($queue->dequeue());
     }
 
 }

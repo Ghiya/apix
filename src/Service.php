@@ -18,7 +18,7 @@ use yii\helpers\ArrayHelper;
  * Class Connection
  * @package Apix
  */
-class Connection extends BaseObject
+class Service extends BaseObject
 {
 
 
@@ -26,6 +26,7 @@ class Connection extends BaseObject
 
 
     const TYPE_REST = 'rest';
+
 
 
     /**

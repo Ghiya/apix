@@ -7,10 +7,17 @@
 namespace ghiyam\apix\controller;
 
 
-use ghiyam\apix\Connection;
-use ghiyam\apix\Services;
+use ghiyam\apix\Service;
+use ghiyam\apix\APIx;
 use yii\base\Controller;
 
+/**
+ * Class ServiceController
+ *
+ * @property APIx $module
+ *
+ * @package ghiyam\apix\controller
+ */
 abstract class ServiceController extends Controller
 {
 
@@ -18,7 +25,7 @@ abstract class ServiceController extends Controller
     /**
      * @var array
      */
-    public $connection = [];
+    public $service = [];
 
 
     /**
@@ -38,20 +45,19 @@ abstract class ServiceController extends Controller
      */
     public function afterAction($action, $result)
     {
-        return parent::afterAction($action, $this->getServices()->fetch($result));
+        return parent::afterAction($action, $this->module->fetch($result, $this->service));
     }
 
 
     /**
-     * @return null|object|Services
+     * @return null|object|APIx
      * @throws \yii\base\InvalidConfigException
      */
-    protected function getServices()
+    /*protected function getServices()
     {
-        /** @var Services $services */
         $services = \Yii::$app->get('services');
-        $services->connection = new Connection($this->connection);
+        $services->connection = new Service($this->service);
         return $services;
-    }
+    }*/
 
 }
