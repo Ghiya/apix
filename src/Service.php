@@ -15,7 +15,7 @@ use yii\base\InvalidConfigException;
 use yii\helpers\ArrayHelper;
 
 /**
- * Class Connection
+ * Class Service
  * @package Apix
  */
 class Service extends BaseObject
@@ -26,7 +26,6 @@ class Service extends BaseObject
 
 
     const TYPE_REST = 'rest';
-
 
 
     /**
@@ -74,7 +73,8 @@ class Service extends BaseObject
                 $this->_client->queryParams,
                 !empty($query->client) ? $query->client : []
             );
-        $query->fetched = $this->_client->send($query->method, $query->params);
+        $query->fetched = $this->_client->send($query->method, $query->getParams());
+        var_dump($query->fetched);
         if (!empty($query->result)) {
             // if callable result
             if (is_callable($query->result)) {

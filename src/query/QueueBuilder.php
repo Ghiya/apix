@@ -7,6 +7,7 @@ namespace ghiyam\apix\query;
 
 
 use yii\helpers\ArrayHelper;
+use yii\helpers\UnsetArrayValue;
 
 class QueueBuilder
 {
@@ -48,11 +49,11 @@ class QueueBuilder
 
 
     /**
-     * @param array $query
+     * @param array $queryParams
      */
-    protected static function addQuery($query = [])
+    protected static function addQuery($queryParams = [])
     {
-        self::$queue->enqueue(new Query($query));
+        self::$queue->enqueue(new Query($queryParams));
     }
 
 

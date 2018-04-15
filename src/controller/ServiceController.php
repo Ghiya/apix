@@ -7,8 +7,9 @@
 namespace ghiyam\apix\controller;
 
 
-use ghiyam\apix\Service;
 use ghiyam\apix\APIx;
+use ghiyam\apix\query\Query;
+use yii\base\ActionEvent;
 use yii\base\Controller;
 
 /**
@@ -35,29 +36,35 @@ abstract class ServiceController extends Controller
 
 
     /**
-     * @param \yii\base\Action $action
-     * @param mixed            $result
-     *
-     * @return mixed
-     * @throws \ErrorException
-     * @throws \ghiyam\apix\exceptions\ClientRequestException
-     * @throws \yii\base\InvalidConfigException
+     * {@inheritdoc}
      */
-    public function afterAction($action, $result)
+    public function init()
     {
-        return parent::afterAction($action, $this->module->fetch($result, $this->service));
+        parent::init();
+        $this->on(
+            self::EVENT_AFTER_ACTION,
+            function (ActionEvent $event) {
+                /** @var ServiceController $controller */
+                $controller = $event->action->controller;
+                $event->result = $controller->module->fetch($event->result);
+                var_dump($event->result);
+                die;
+                $event->handled = true;
+            }
+        );
     }
 
 
     /**
-     * @return null|object|APIx
-     * @throws \yii\base\InvalidConfigException
+     * @param Query $query
+     *
+     * @return Query|null
+     * @throws \ghiyam\apix\exceptions\ClientRequestException
      */
-    /*protected function getServices()
+    final public function sendQuery(Query $query)
     {
-        $services = \Yii::$app->get('services');
-        $services->connection = new Service($this->service);
-        return $services;
-    }*/
+        return $this->module->getServiceWithParams($this->service)->sendQuery($query);
+    }
+
 
 }
