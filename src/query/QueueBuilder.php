@@ -7,7 +7,6 @@ namespace ghiyam\apix\query;
 
 
 use yii\helpers\ArrayHelper;
-use yii\helpers\UnsetArrayValue;
 
 class QueueBuilder
 {
@@ -23,6 +22,7 @@ class QueueBuilder
      * @param array $queryParams
      *
      * @return \SplQueue
+     * @throws \yii\base\InvalidConfigException
      */
     public static function build($queryParams = [])
     {
@@ -35,6 +35,8 @@ class QueueBuilder
 
     /**
      * @param array $queryParams
+     *
+     * @throws \yii\base\InvalidConfigException
      */
     protected static function buildQueue($queryParams = [])
     {
@@ -50,6 +52,8 @@ class QueueBuilder
 
     /**
      * @param array $queryParams
+     *
+     * @throws \yii\base\InvalidConfigException
      */
     protected static function addQuery($queryParams = [])
     {
@@ -59,6 +63,8 @@ class QueueBuilder
 
     /**
      * @param array $joinParams
+     *
+     * @throws \yii\base\InvalidConfigException
      */
     protected static function join($joinParams = [])
     {

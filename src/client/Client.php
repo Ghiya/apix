@@ -17,12 +17,6 @@ abstract class Client extends BaseObject
     /**
      * @var array
      */
-    public $queryParams = [];
-
-
-    /**
-     * @var array
-     */
     public $headers = [];
 
 
@@ -47,13 +41,14 @@ abstract class Client extends BaseObject
     /**
      * @param string $method
      * @param array  $params
+     * @param array  $clientParams
      *
-     * @return array|mixed|null
+     * @return mixed|null
      * @throws ClientRequestException
      */
-    final public function send($method = "", $params = [])
+    final public function send($method = "", $params = [], $clientParams = [])
     {
-        $this->_originalRequest = $this->prepareRequest($method, $params);
+        $this->_originalRequest = $this->prepareRequest($method, $params, $clientParams);
         $this->_originalResponse = $this->sendRequest($this->_originalRequest);
         return $this->prepareResponse($this->_originalResponse);
     }
@@ -71,10 +66,11 @@ abstract class Client extends BaseObject
     /**
      * @param string $method
      * @param array  $params
+     * @param array  $clientParams
      *
-     * @return string
+     * @return mixed
      */
-    abstract protected function prepareRequest($method = "", $params = []);
+    abstract protected function prepareRequest($method = "", $params = [], $clientParams = []);
 
 
     /**

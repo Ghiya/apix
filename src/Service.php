@@ -63,31 +63,28 @@ class Service extends BaseObject
     /**
      * @param Query $query
      *
-     * @return Query|mixed|null
+     * @throws \ErrorException
      * @throws exceptions\ClientRequestException
      */
-    final public function sendQuery(Query $query)
+    final public function sendRequest(Query &$query)
     {
-        $this->_client->queryParams =
-            ArrayHelper::merge(
-                $this->_client->queryParams,
-                !empty($query->client) ? $query->client : []
-            );
-        $query->fetched = $this->_client->send($query->method, $query->getParams());
-        var_dump($query->fetched);
+        $query->fetched = $this->_client->send($query->getMethod(), $query->getParams(), $query->clientParams);
         if (!empty($query->result)) {
+            $parsedResult = null;
             // if callable result
             if (is_callable($query->result)) {
-                $query->fetched = call_user_func($query->result, $query->fetched);
+                $parsedResult = call_user_func($query->result, $query->fetched);
             }
             // if strict value result
             elseif (is_string($query->result) && !is_numeric($query->result)) {
-                $query->fetched =
-                    is_array($query->fetched) && isset($response[$query->result]) ?
-                        $query->fetched[$query->result] : null;
+                $parsedResult = ArrayHelper::getValue($query->fetched, $query->result);
             }
+            // if an array subset result
+            elseif (is_array($query->result)) {
+                $parsedResult = ArrayHelper::filter($query->fetched, $query->result);
+            }
+            $query->fetched = $parsedResult;
         }
-        return $query;
     }
 
 }

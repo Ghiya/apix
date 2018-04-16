@@ -8,6 +8,7 @@ namespace ghiyam\apix\query;
 
 
 use yii\base\BaseObject;
+use yii\base\InvalidConfigException;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
 use yii\helpers\UnsetArrayValue;
@@ -17,10 +18,10 @@ class Query extends BaseObject
 {
 
 
-    const TYPE_SIMPLE = 0;
+    const REG_JOIN_PARAM = "\|\w+\|";
 
 
-    const TYPE_COMPOSED = 1;
+    const REG_JOIN_RESPONSE = "\|\*\|";
 
 
     /**
@@ -32,7 +33,7 @@ class Query extends BaseObject
     /**
      * @var array
      */
-    public $client = [];
+    public $clientParams = [];
 
 
     /**
@@ -44,13 +45,7 @@ class Query extends BaseObject
     /**
      * @var string|array
      */
-    public $joinResult;
-
-
-    /**
-     * @var string
-     */
-    public $joinIndex = [];
+    public $joinedResponse;
 
 
     /**
@@ -66,9 +61,10 @@ class Query extends BaseObject
 
 
     /**
-     * @var string|array
+     * @var mixed|string
      */
-    public $lastResponse;
+    private $_method = "";
+
 
     /**
      * @var array
@@ -77,9 +73,9 @@ class Query extends BaseObject
 
 
     /**
-     * @var string
+     * @var int|null
      */
-    private $_toString = "";
+    private $_joinCyclesCounter;
 
 
     /**
@@ -92,9 +88,21 @@ class Query extends BaseObject
      * Query constructor.
      *
      * @param array $config
+     *
+     * @throws InvalidConfigException
      */
     public function __construct(array $config = [])
     {
+        if (!isset($config['method'])) {
+            throw new InvalidConfigException("Parameter `method` must be set in the configuration array.");
+        }
+        $this->_method = $config['method'];
+        $config = ArrayHelper::merge(
+            $config,
+            [
+                'method' => new UnsetArrayValue()
+            ]
+        );
         // move `params` from `config` to private variable
         if (isset($config['params'])) {
             $this->_params = $config['params'];
@@ -106,94 +114,6 @@ class Query extends BaseObject
             );
         }
         parent::__construct($config);
-    }
-
-
-    /**
-     * @return int
-     */
-    public function getType()
-    {
-        return
-            !empty($this->join) && !empty($this->joinIndex) ?
-                self::TYPE_COMPOSED : self::TYPE_SIMPLE;
-    }
-
-
-    /**
-     * @return bool
-     */
-    public function isComposed()
-    {
-        return $this->getType() == self::TYPE_COMPOSED;
-    }
-
-
-    /**
-     * @return bool
-     */
-    public function isSimple()
-    {
-        return $this->getType() == self::TYPE_SIMPLE;
-    }
-
-
-    public function hasJoinedIndex()
-    {
-        return preg_match("/\[:\w+:\]/i", $this->__toString());
-    }
-
-    public function hasJoinedResponse()
-    {
-        return preg_match("/\[:\*:\]/i", $this->__toString());
-    }
-
-    private function _joinParams()
-    {
-        if ( $this->hasJoinedIndex() ) {
-            //$joinIndex = strstr(strstr($this->_toString(), "[:"), ":]", true);
-            preg_match_all("/\[:\w+:\]/i", $this->__toString(), $joinIndexes, PREG_SET_ORDER );
-            if ( !empty($joinIndexes)) {
-                $joinedHash = $this->__toString();
-                foreach ($joinIndexes as $joinIndex) {
-                    $responseJoinIndex = substr($joinIndex[0], 2, strlen($joinIndex[0]) - 4);
-                    var_dump($this->fetched);die;
-                    if ( isset($this->fetched[$responseJoinIndex]) ) {
-                        $joinedHash = preg_replace("/\[:".$joinIndex[0].":\]/i", $this->fetched[$joinIndex[[0]]], $joinedHash);
-                    }
-                    else {
-                        throw new \ErrorException("Join index `$responseJoinIndex` value was not found in response.");
-                    }
-                }
-                var_dump($joinedHash);die;
-            }
-            // if substitution found
-            if ( isset($this->fetched[$joinIndex]) ) {
-                $joinedHash = preg_replace("/\[:\w+:\]/i", $this->fetched[$joinIndex], $this->__toString());
-                return
-                    Json::decode(strstr($joinedHash, "&&"));
-            }
-        }
-        elseif( $this->hasJoinedResponse() ) {
-
-        }
-        return [];
-    }
-
-    /**
-     * @return array
-     */
-    public function getParams()
-    {
-        /*if ( $this->hasJoinIndex() ) {
-            echo $this->_toString();
-            die;
-        }*/
-        return
-            ArrayHelper::merge(
-                $this->_params,
-                $this->_joinParams()
-            );
     }
 
 
@@ -210,14 +130,130 @@ class Query extends BaseObject
 
 
     /**
+     * @return mixed|string
+     * @throws \ErrorException
+     */
+    public function getMethod()
+    {
+        $this->_applyJoin();
+        return $this->_method;
+    }
+
+
+    /**
+     * @return array
+     * @throws \ErrorException
+     */
+    public function getParams()
+    {
+        $this->_applyJoin();
+        return $this->_params;
+    }
+
+
+    /**
+     * @throws \ErrorException
+     */
+    private function _applyJoin()
+    {
+        if ($this->hasJoinParams()) {
+            if (empty($this->joinedResponse)) {
+                throw new \ErrorException("Cannot join request with `null` response.");
+            }
+            if ($this->_joinParam()) {
+                $queryString = $this->__toString();
+                preg_match_all("/" . self::REG_JOIN_PARAM . "/i", $queryString, $joinIndexes, PREG_SET_ORDER);
+                if (!empty($joinIndexes)) {
+                    foreach ($joinIndexes as $joinIndex) {
+                        $joinIndexParam = substr($joinIndex[0], 1, strlen($joinIndex[0]) - 2);
+                        if (!isset($this->joinedResponse[$joinIndexParam])) {
+                            throw new \ErrorException("Join index param `$joinIndexParam` was not found in response.");
+                        }
+                        else {
+                            $queryString = preg_replace("/\|" . $joinIndexParam . "\|/i",
+                                $this->joinedResponse[$joinIndexParam], $queryString);
+                        }
+                    }
+                }
+                $this->__fromString($queryString);
+            }
+            elseif ($this->_joinResponse()) {
+                $this->__fromString(preg_replace("/" . self::REG_JOIN_RESPONSE . "/i", $this->joinedResponse,
+                    $this->__toString()));
+            }
+        }
+    }
+
+
+    /**
+     * @return int
+     */
+    public function hasJoin()
+    {
+        return !empty($this->join);
+    }
+
+
+    /**
+     * @return bool
+     */
+    protected function hasJoinParams()
+    {
+        return $this->_joinParam() || $this->_joinResponse();
+    }
+
+
+    /**
+     * @return false|int
+     */
+    private function _joinParam()
+    {
+        return preg_match("/" . self::REG_JOIN_PARAM . "/i", $this->__toString());
+    }
+
+
+    /**
+     * @return false|int
+     */
+    private function _joinResponse()
+    {
+        return preg_match("/" . self::REG_JOIN_RESPONSE . "/i", $this->__toString());
+    }
+
+
+    /**
+     * @param bool $reset
+     *
+     * @return int|null
+     */
+    public function joinCycleCounter($reset = false)
+    {
+        if (!isset($this->_joinCyclesCounter) || $reset) {
+            $this->_joinCyclesCounter = count($this->join);
+        }
+        else {
+            $this->_joinCyclesCounter--;
+        }
+        return $this->_joinCyclesCounter;
+    }
+
+
+    /**
+     * @param $queryString
+     */
+    public function __fromString($queryString)
+    {
+        $this->_method = strstr($queryString, "&&", true);
+        $this->_params = Json::decode(substr(strstr($queryString, "&&"), 2));
+    }
+
+
+    /**
      * @return string
      */
     public function __toString()
     {
-        if (empty($this->_toString)) {
-            $this->_toString = (string)$this->method . "&&" . Json::encode($this->_params);
-        }
-        return $this->_toString;
+        return (string)$this->_method . "&&" . Json::encode($this->_params);
     }
 
 

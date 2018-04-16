@@ -102,10 +102,10 @@ class RestClient extends Client
     /**
      * {@inheritdoc}
      */
-    protected function prepareRequest($method = "", $params = [])
+    protected function prepareRequest($method = "", $params = [], $clientParams = [])
     {
         // set request type
-        switch ($this->getRequestType()) {
+        switch ($this->requestType($clientParams)) {
 
             case 'GET':
                 $originalRequest =
@@ -128,7 +128,7 @@ class RestClient extends Client
                 $originalRequest =
                     [
                         CURLOPT_URL           => $this->getServerUrl() . "/$method",
-                        CURLOPT_CUSTOMREQUEST => $this->getRequestType()
+                        CURLOPT_CUSTOMREQUEST => $this->requestType($clientParams)
                     ];
                 break;
         }
@@ -152,6 +152,9 @@ class RestClient extends Client
     }
 
 
+    /**
+     * @return string
+     */
     protected function getServerUrl()
     {
         $serverUrl = "";
@@ -162,10 +165,15 @@ class RestClient extends Client
     }
 
 
-    protected function getRequestType()
+    /**
+     * @param array $clientParams
+     *
+     * @return mixed|string
+     */
+    protected function requestType($clientParams = [])
     {
         return
-            isset($this->queryParams['requestMethod']) ? $this->queryParams['requestMethod'] : self::REQUEST_METHOD_GET;
+            isset($clientParams['requestMethod']) ? $clientParams['requestMethod'] : self::REQUEST_METHOD_GET;
     }
 
 

@@ -127,7 +127,7 @@ class SoapClient extends Client
     /**
      * {@inheritdoc}
      */
-    protected function prepareRequest($method = "", $params = [])
+    protected function prepareRequest($method = "", $params = [], $clientParams = [])
     {
         // parse non-specific properties
         if (isset($params['showTrace'])) {
