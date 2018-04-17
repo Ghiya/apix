@@ -4,8 +4,57 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "25ef9540a228573d152002a3830c2c1d",
-    "packages": [],
+    "content-hash": "969ee29c9aafe1912b75e0d122b0e928",
+    "packages": [
+        {
+            "name": "php-smpp/php-smpp",
+            "version": "1.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/onlinecity/php-smpp.git",
+                "reference": "b8632357b4bf48668aa461d9004c70be9c99de9e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/onlinecity/php-smpp/zipball/b8632357b4bf48668aa461d9004c70be9c99de9e",
+                "reference": "b8632357b4bf48668aa461d9004c70be9c99de9e",
+                "shasum": ""
+            },
+            "require": {
+                "ext-mbstring": "*",
+                "ext-sockets": "*",
+                "php": ">=5.3.3"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "gsmencoder.class.php",
+                    "sockettransport.class.php",
+                    "smppclient.class.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL"
+            ],
+            "authors": [
+                {
+                    "name": "Hans Duedal",
+                    "email": "hd@oc.dk",
+                    "homepage": "http://oc.dk"
+                }
+            ],
+            "description": "PHP-based SMPP client lib",
+            "homepage": "http://github.com/onlinecity/php-smpp",
+            "keywords": [
+                "gsm",
+                "smpp",
+                "sms",
+                "texting"
+            ],
+            "time": "2015-01-26T10:59:22+00:00"
+        }
+    ],
     "packages-dev": [
         {
             "name": "bower-asset/bootstrap",

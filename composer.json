@@ -1,10 +1,11 @@
 {
   "name": "ghiyam/apix",
   "description": "Universal plugin for the external services API.",
-  "version": "v0.1.0",
+  "version": "v0.2.1",
   "type": "yii2-extension",
   "require": {
-    "php": ">=5.4.0"
+    "php": ">=5.4.0",
+    "php-smpp/php-smpp": "^1.2"
   },
   "require-dev": {
     "yiisoft/yii2": "~2.0.14",

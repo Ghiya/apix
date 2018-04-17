@@ -8,6 +8,7 @@ namespace ghiyam\apix;
 
 
 use ghiyam\apix\client\RestClient;
+use ghiyam\apix\client\SmppClient;
 use ghiyam\apix\client\SoapClient;
 use ghiyam\apix\query\Query;
 use yii\base\BaseObject;
@@ -27,6 +28,8 @@ class Service extends BaseObject
 
     const TYPE_REST = 'rest';
 
+
+    const TYPE_SMPP = 'smpp';
 
     /**
      * @var string
@@ -55,8 +58,24 @@ class Service extends BaseObject
         if (empty($this->params)) {
             throw new InvalidConfigException("Property `params` must be set.");
         }
-        $this->_client = $this->type === self::TYPE_SOAP ?
-            new SoapClient($this->params) : new RestClient($this->params);
+        switch ($this->type) {
+
+            case self::TYPE_REST :
+                $this->_client = new RestClient($this->params);
+                break;
+
+            case self::TYPE_SOAP :
+                $this->_client = new SoapClient($this->params);
+                break;
+
+            case self::TYPE_SMPP :
+                $this->_client = new SmppClient($this->params);
+                break;
+
+            default :
+                throw new InvalidConfigException("Property `type` must be set.");
+                break;
+        }
     }
 
 

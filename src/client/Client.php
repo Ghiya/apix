@@ -21,6 +21,12 @@ abstract class Client extends BaseObject
 
 
     /**
+     * @var bool
+     */
+    public $emulate = false;
+
+
+    /**
      * @var object
      */
     protected $connector;

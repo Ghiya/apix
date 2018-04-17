@@ -6,7 +6,6 @@
 namespace ghiyam\apix;
 
 
-use ghiyam\apix\controllers\DefaultController;
 use yii\base\BootstrapInterface;
 use yii\base\DynamicModel;
 use yii\base\InvalidConfigException;
@@ -18,7 +17,7 @@ use yii\helpers\Json;
  *
  *
  * @package ghiyam\apix
- * @version v0.2.0
+ * @version v0.2.1
  */
 class APIx extends Module implements BootstrapInterface
 {
@@ -27,7 +26,7 @@ class APIx extends Module implements BootstrapInterface
     /**
      * @var string
      */
-    public $version = "v0.2.0";
+    public $version = "v0.2.1";
 
 
     /**
