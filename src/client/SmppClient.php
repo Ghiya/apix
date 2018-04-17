@@ -26,6 +26,7 @@ class SmppClient extends RestClient
      */
     public $isDebug = false;
 
+
     /**
      * @var array
      */
@@ -38,7 +39,11 @@ class SmppClient extends RestClient
     protected $transport;
 
 
-
+    /**
+     * {@inheritdoc}
+     *
+     * @throws InvalidConfigException
+     */
     public function init()
     {
         parent::init();
@@ -51,25 +56,25 @@ class SmppClient extends RestClient
         if (empty($this->smpp['password'])) {
             throw new InvalidConfigException('Property `smpp[\'password\']` must be set.');
         }
-
         $this->transport = new \SocketTransport([$this->host], $this->port);
         $this->transport->setRecvTimeout(10000);
         $this->connector = new \SmppClient($this->transport);
         // Activate binary hex-output of server interaction
-        if ( $this->isDebug ) {
+        if ($this->isDebug) {
             $this->connector->debug = true;
             $this->transport->debug = true;
         }
-        if (empty($this->smpp['options'])) {
-            foreach($this->smpp['options'] as $option => $value) {
+        if (!empty($this->smpp['options'])) {
+            foreach ($this->smpp['options'] as $option => $value) {
                 \SmppClient::${$option} = $value;
             }
         }
-        /*\SmppClient::$sms_null_terminate_octetstrings = false;
-        \SmppClient::$csms_method = \SmppClient::CSMS_PAYLOAD;
-        \SmppClient::$sms_registered_delivery_flag = \SMPP::REG_DELIVERY_SMSC_BOTH;*/
     }
 
+
+    /**
+     * {@inheritdoc}
+     */
     protected function prepareRequest($method = "", $params = [], $clientParams = [])
     {
         $this->transport->open();
@@ -81,22 +86,37 @@ class SmppClient extends RestClient
         ];
     }
 
+
+    /**
+     * {@inheritdoc}
+     */
     protected function prepareResponse($originalResponse)
     {
-        var_dump($originalResponse);
-        die;
+        return !empty($originalResponse['id']);
     }
 
+
+    /**
+     * {@inheritdoc}
+     */
     public function sendRequest($originalRequest)
     {
-        $messageId = $this->connector->sendSMS(
-            $originalRequest['from'],
-            $originalRequest['to'],
-            $originalRequest['text'],
-            isset($this->smpp['tags']) ? $this->smpp['tags'] : null,
-            isset($this->smpp['encoding']) ? $this->smpp['encoding'] : \SMPP::DATA_CODING_DEFAULT
-        );
-        return $this->connector->queryStatus($messageId, $originalRequest['to']);
+        return
+            $this->emulate ?
+                [
+                    'id' => true,
+                ] :
+                [
+                    'id'     =>
+                        $this->connector->sendSMS(
+                            $originalRequest['from'],
+                            $originalRequest['to'],
+                            $originalRequest['text'],
+                            isset($this->smpp['tags']) ? $this->smpp['tags'] : null,
+                            isset($this->smpp['encoding']) ? $this->smpp['encoding'] : \SMPP::DATA_CODING_DEFAULT
+                        ),
+                    'source' => $originalRequest['to']
+                ];
     }
 
 }
