@@ -63,21 +63,6 @@ class APIx extends Module implements BootstrapInterface
 
 
     /**
-     * @return int|string
-     * @throws InvalidConfigException
-     */
-    protected function getDefaultService()
-    {
-        foreach ($this->controllerMap as $serviceId => $serviceConfig) {
-            if (!empty($serviceConfig['isDefault'])) {
-                return $serviceId;
-            }
-        }
-        throw new InvalidConfigException("The requested service API was not found and default service is not defined.");
-    }
-
-
-    /**
      * @param       $route
      * @param array $params
      *
@@ -97,7 +82,7 @@ class APIx extends Module implements BootstrapInterface
                     return "$serviceId/$route";
                 }
             }
-            return $this->getDefaultService() . "/$route";
+            throw new InvalidConfigException("API service was not found for the route `$route`.");
         }
         return $route;
     }

@@ -40,12 +40,6 @@ abstract class ServiceController extends Controller
     /**
      * @var bool
      */
-    public $isDefault = false;
-
-
-    /**
-     * @var bool
-     */
     public $fetchResult = true;
 
 
