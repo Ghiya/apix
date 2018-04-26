@@ -54,8 +54,12 @@ abstract class Client extends BaseObject
      */
     final public function send($method = "", $params = [], $clientParams = [])
     {
+        \Yii::debug($method, __CLASS__);
+        \Yii::debug($params, __CLASS__);
         $this->_originalRequest = $this->prepareRequest($method, $params, $clientParams);
+        \Yii::debug($this->_originalRequest, __CLASS__);
         $this->_originalResponse = $this->sendRequest($this->_originalRequest);
+        \Yii::debug($this->_originalResponse, __CLASS__);
         return $this->prepareResponse($this->_originalResponse);
     }
 

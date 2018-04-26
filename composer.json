@@ -1,7 +1,7 @@
 {
   "name": "ghiyam/apix",
   "description": "Universal plugin for the external services API.",
-  "version": "v0.2.1",
+  "version": "v0.2.2",
   "type": "yii2-extension",
   "require": {
     "php": ">=5.4.0",
