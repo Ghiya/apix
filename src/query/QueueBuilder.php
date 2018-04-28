@@ -57,7 +57,9 @@ class QueueBuilder
      */
     protected static function addQuery($queryParams = [])
     {
-        self::$queue->enqueue(new Query($queryParams));
+        if ( !empty($queryParams) ) {
+            self::$queue->enqueue(new Query($queryParams));
+        }
     }
 
 

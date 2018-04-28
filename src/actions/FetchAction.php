@@ -11,7 +11,7 @@ use ghiyam\apix\controllers\ServiceController;
 use ghiyam\apix\query\Query;
 use ghiyam\apix\query\QueueBuilder;
 use yii\base\Action;
-use yii\base\ActionEvent;
+use yii\base\InvalidConfigException;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -19,6 +19,8 @@ use yii\helpers\ArrayHelper;
  * Действие запроса к API сервиса.
  * Результат выполнения обрабатывается как запрос к API и, соответственно, действие всегда должено возвращать массив
  * параметров запроса.
+ *
+ * > Tip: Если не требуется обрабатывать запрос действия, то достаточно вернуть пустой массив.
  *
  * Пример результата выполнения:
  * ```
@@ -42,6 +44,12 @@ class FetchAction extends Action
 
 
     /**
+     * @var bool
+     */
+    public $eventHandled = false;
+
+
+    /**
      * @var array
      */
     private $_actionQueries = [];
@@ -60,22 +68,6 @@ class FetchAction extends Action
 
 
     /**
-     * {@inheritdoc}
-     */
-    public function init()
-    {
-        parent::init();
-        $this->controller->on(
-            ServiceController::EVENT_AFTER_ACTION,
-            function (ActionEvent $event) {
-                $event->result = $this->fetchResult($event->result);
-                $event->handled = true;
-            }
-        );
-    }
-
-
-    /**
      * @param array $resultQuery
      *
      * @return array|null|string
@@ -83,8 +75,11 @@ class FetchAction extends Action
      * @throws \ghiyam\apix\exceptions\ClientRequestException
      * @throws \yii\base\InvalidConfigException
      */
-    protected function fetchResult($resultQuery = [])
+    public function fetchResult($resultQuery = [])
     {
+        if (!is_array($resultQuery)) {
+            throw new InvalidConfigException("Fetched action result must be an array. The string `$resultQuery` is given.");
+        }
         $this->_actionQueries = $resultQuery;
         $this->fetchQueries();
         return $this->_fetchedResult;
