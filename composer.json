@@ -1,7 +1,11 @@
 {
   "name": "ghiyam/apix",
-  "description": "Universal plugin for the external services API.",
-  "version": "v0.2.2",
+  "description": "Yii2 module supporting universal client-server requests to the external API.",
+  "keywords": [
+    "yii2",
+    "module",
+    "API"
+  ],
   "type": "yii2-extension",
   "require": {
     "php": ">=5.5.0",
