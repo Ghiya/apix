@@ -92,6 +92,7 @@ class SmppClient extends RestClient
      */
     protected function prepareResponse($originalResponse)
     {
+        $this->connector->close();
         return !empty($originalResponse['id']);
     }
 
