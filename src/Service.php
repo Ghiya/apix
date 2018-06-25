@@ -44,7 +44,7 @@ class Service extends BaseObject
 
 
     /**
-     * @var RestClient|SoapClient
+     * @var RestClient|SoapClient|SmppClient
      */
     private $_client;
 
