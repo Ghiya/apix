@@ -103,21 +103,17 @@ class SmppClient extends RestClient
     public function sendRequest($originalRequest)
     {
         return
-            $this->emulate ?
-                [
-                    'id' => true,
-                ] :
-                [
-                    'id'     =>
-                        $this->connector->sendSMS(
-                            $originalRequest['from'],
-                            $originalRequest['to'],
-                            $originalRequest['text'],
-                            isset($this->smpp['tags']) ? $this->smpp['tags'] : null,
-                            isset($this->smpp['encoding']) ? $this->smpp['encoding'] : \SMPP::DATA_CODING_DEFAULT
-                        ),
-                    'source' => $originalRequest['to']
-                ];
+            [
+                'id'     =>
+                    $this->connector->sendSMS(
+                        $originalRequest['from'],
+                        $originalRequest['to'],
+                        $originalRequest['text'],
+                        isset($this->smpp['tags']) ? $this->smpp['tags'] : null,
+                        isset($this->smpp['encoding']) ? $this->smpp['encoding'] : \SMPP::DATA_CODING_DEFAULT
+                    ),
+                'source' => $originalRequest['to']
+            ];
     }
 
 }

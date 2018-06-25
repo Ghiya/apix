@@ -87,7 +87,7 @@ class Service extends BaseObject
      */
     final public function sendRequest(Query &$query)
     {
-        $query->fetched = $this->_client->send($query->getMethod(), $query->getParams(), $query->clientParams);
+        $query->fetched = $this->_client->send($query->getMethod(), $query->getParams());
         if (!empty($query->result)) {
             $parsedResult = null;
             // if callable result

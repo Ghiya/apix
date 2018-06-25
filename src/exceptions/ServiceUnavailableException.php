@@ -22,11 +22,11 @@ class ServiceUnavailableException extends HttpException
     /**
      * ServiceUnavailableException constructor.
      *
-     * @param                 $serviceControllerId
+     * @param                 $serviceId
      */
-    public function __construct($serviceControllerId)
+    public function __construct($serviceId)
     {
-        parent::__construct(500, $this->getExceptionMessage($serviceControllerId), 0, null);
+        parent::__construct(500, "Unavailable to connect to service `" . $serviceId . "`.", 0, null);
     }
 
 
@@ -36,20 +36,6 @@ class ServiceUnavailableException extends HttpException
     public function getName()
     {
         return 'Connection error';
-    }
-
-
-    /**
-     * @param $serviceControllerId
-     * @param $apiActionId
-     *
-     * @return string
-     */
-    protected function getExceptionMessage($serviceControllerId)
-    {
-        return defined("YII_DEBUG") && YII_DEBUG ?
-            "Unavailable API service `$serviceControllerId`." :
-            "Requested service is unavailable.";
     }
 
 }

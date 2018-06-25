@@ -6,6 +6,7 @@
 namespace ghiyam\apix\client;
 
 
+use ghiyam\apix\exceptions\ServiceUnavailableException;
 use ghiyam\apix\exceptions\UnknownAPIException;
 use yii\base\InvalidConfigException;
 use yii\helpers\ArrayHelper;
@@ -25,13 +26,13 @@ class RestClient extends Client
     /**
      * @var string
      */
-    public $host = "localhost";
+    public $host;
 
 
     /**
      * @var string
      */
-    public $port = "";
+    public $port;
 
 
     /**
@@ -50,6 +51,12 @@ class RestClient extends Client
      * @var int
      */
     public $timeout = 3;
+
+
+    /**
+     * @var bool
+     */
+    public $checkConnection = false;
 
 
     /**
@@ -81,11 +88,18 @@ class RestClient extends Client
 
     /**
      * {@inheritdoc}
+     *
+     * @throws ServiceUnavailableException
      */
     public function sendRequest($originalRequest)
     {
         curl_setopt_array($this->connector, $originalRequest);
-        return curl_exec($this->connector);
+        if ($this->hasConnection()) {
+            curl_exec($this->connector);
+        }
+        else {
+            throw new ServiceUnavailableException($this->getServiceId());
+        }
     }
 
 
@@ -145,6 +159,29 @@ class RestClient extends Client
     protected function prepareResponse($originalResponse)
     {
         return Json::decode($originalResponse);
+    }
+
+
+    /**
+     * @return bool
+     */
+    protected function hasConnection()
+    {
+        if ($this->emulate) {
+            return true;
+        }
+        $fp = @fsockopen(
+            $this->host,
+            $this->port,
+            $errCode,
+            $errStr,
+            $this->timeout
+        );
+        if ($fp) {
+            fclose($fp);
+            return true;
+        }
+        return false;
     }
 
 

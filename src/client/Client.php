@@ -49,9 +49,17 @@ abstract class Client extends BaseObject
 
 
     /**
+     * @return string
+     */
+    protected function getServiceId()
+    {
+        return \Yii::$app->controller->id;
+    }
+
+
+    /**
      * @param string $method
      * @param array  $params
-     * @param array  $clientParams
      *
      * @return mixed|null
      * @throws ClientRequestException
@@ -60,6 +68,10 @@ abstract class Client extends BaseObject
     {
         \Yii::debug($method, __CLASS__);
         \Yii::debug($params, __CLASS__);
+        if ($this->emulate) {
+            \Yii::debug("Emulated request returns `true`.", __METHOD__);
+            return true;
+        }
         $this->_originalRequest = $this->prepareRequest($method, $params);
         \Yii::debug($this->_originalRequest, __CLASS__);
         $this->_originalResponse = $this->sendRequest($this->_originalRequest);

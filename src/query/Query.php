@@ -33,12 +33,6 @@ class Query extends BaseObject
     /**
      * @var array
      */
-    public $clientParams = [];
-
-
-    /**
-     * @var array
-     */
     public $join = [];
 
 
