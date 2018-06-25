@@ -75,7 +75,7 @@ class SmppClient extends RestClient
     /**
      * {@inheritdoc}
      */
-    protected function prepareRequest($method = "", $params = [], $clientParams = [])
+    protected function prepareRequest($method = "", $params = [])
     {
         $this->transport->open();
         $this->connector->bindTransmitter($this->smpp['username'], $this->smpp['password']);

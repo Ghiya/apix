@@ -6,6 +6,7 @@
 namespace ghiyam\apix\client;
 
 
+use ghiyam\apix\exceptions\UnknownAPIException;
 use yii\base\InvalidConfigException;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
@@ -21,24 +22,6 @@ class RestClient extends Client
 {
 
 
-    const REQUEST_METHOD_GET = 'GET';
-
-
-    const REQUEST_METHOD_POST = 'POST';
-
-
-    const REQUEST_METHOD_HEAD = 'HEAD';
-
-
-    const REQUEST_METHOD_PATCH = 'PATCH';
-
-
-    const REQUEST_METHOD_UPDATE = 'UPDATE';
-
-
-    const REQUEST_METHOD_DELETE = 'DELETE';
-
-
     /**
      * @var string
      */
@@ -48,7 +31,7 @@ class RestClient extends Client
     /**
      * @var string
      */
-    public $port = "80";
+    public $port = "";
 
 
     /**
@@ -67,6 +50,13 @@ class RestClient extends Client
      * @var int
      */
     public $timeout = 3;
+
+
+    /**
+     * @var array
+     */
+    protected $allowedMethods =
+        ['get', 'post', 'head', 'patch', 'update', 'delete', 'put'];
 
 
     /**
@@ -101,13 +91,19 @@ class RestClient extends Client
 
     /**
      * {@inheritdoc}
+     *
+     * @throws UnknownAPIException
      */
-    protected function prepareRequest($method = "", $params = [], $clientParams = [])
+    protected function prepareRequest($method = "", $params = [])
     {
+        $method = strtolower($method);
+        if (!in_array($method, $this->allowedMethods)) {
+            throw new UnknownAPIException(\Yii::$app->controller->id, 'method');
+        }
         // set request type
-        switch ($this->requestType($clientParams)) {
+        switch ($method) {
 
-            case 'GET':
+            case 'get':
                 $originalRequest =
                     [
                         CURLOPT_URL     => $this->getServerUrl() . "/$method?" . http_build_query($params),
@@ -115,7 +111,7 @@ class RestClient extends Client
                     ];
                 break;
 
-            case 'POST':
+            case 'post':
                 $originalRequest =
                     [
                         CURLOPT_URL        => $this->getServerUrl() . "/$method",
@@ -128,7 +124,7 @@ class RestClient extends Client
                 $originalRequest =
                     [
                         CURLOPT_URL           => $this->getServerUrl() . "/$method",
-                        CURLOPT_CUSTOMREQUEST => $this->requestType($clientParams)
+                        CURLOPT_CUSTOMREQUEST => $method
                     ];
                 break;
         }
@@ -163,18 +159,5 @@ class RestClient extends Client
         $serverUrl .= !empty($this->uri) ? "$this->uri" : "";
         return $serverUrl;
     }
-
-
-    /**
-     * @param array $clientParams
-     *
-     * @return mixed|string
-     */
-    protected function requestType($clientParams = [])
-    {
-        return
-            isset($clientParams['requestMethod']) ? $clientParams['requestMethod'] : self::REQUEST_METHOD_GET;
-    }
-
 
 }

@@ -10,6 +10,10 @@ namespace ghiyam\apix\client;
 use ghiyam\apix\exceptions\ClientRequestException;
 use yii\base\BaseObject;
 
+/**
+ * Class Client
+ * @package ghiyam\apix\client
+ */
 abstract class Client extends BaseObject
 {
 
@@ -52,11 +56,11 @@ abstract class Client extends BaseObject
      * @return mixed|null
      * @throws ClientRequestException
      */
-    final public function send($method = "", $params = [], $clientParams = [])
+    final public function send($method = "", $params = [])
     {
         \Yii::debug($method, __CLASS__);
         \Yii::debug($params, __CLASS__);
-        $this->_originalRequest = $this->prepareRequest($method, $params, $clientParams);
+        $this->_originalRequest = $this->prepareRequest($method, $params);
         \Yii::debug($this->_originalRequest, __CLASS__);
         $this->_originalResponse = $this->sendRequest($this->_originalRequest);
         \Yii::debug($this->_originalResponse, __CLASS__);
@@ -76,11 +80,10 @@ abstract class Client extends BaseObject
     /**
      * @param string $method
      * @param array  $params
-     * @param array  $clientParams
      *
      * @return mixed
      */
-    abstract protected function prepareRequest($method = "", $params = [], $clientParams = []);
+    abstract protected function prepareRequest($method = "", $params = []);
 
 
     /**
