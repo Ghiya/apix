@@ -26,6 +26,12 @@ class RestClient extends Client
     /**
      * @var string
      */
+    public $hostPrefix = "http://";
+
+
+    /**
+     * @var string
+     */
     public $host;
 
 
@@ -190,8 +196,7 @@ class RestClient extends Client
      */
     protected function getServerUrl()
     {
-        $serverUrl = "";
-        $serverUrl .= $this->secured ? "https://$this->host" : "http://$this->host";
+        $serverUrl = $this->hostPrefix . $this->host;
         $serverUrl .= !empty($this->port) ? ":$this->port" : "";
         $serverUrl .= !empty($this->uri) ? "$this->uri" : "";
         return $serverUrl;
