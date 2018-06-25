@@ -10,7 +10,6 @@ use ghiyam\apix\exceptions\ServiceUnavailableException;
 use ghiyam\apix\exceptions\UnknownAPIException;
 use yii\base\InvalidConfigException;
 use yii\helpers\ArrayHelper;
-use yii\helpers\Json;
 
 /**
  * Class RestClient
@@ -66,13 +65,6 @@ class RestClient extends Client
 
 
     /**
-     * @var array
-     */
-    protected $allowedMethods =
-        ['get', 'post', 'head', 'patch', 'update', 'delete', 'put'];
-
-
-    /**
      * @throws InvalidConfigException
      */
     public function init()
@@ -101,7 +93,7 @@ class RestClient extends Client
     {
         curl_setopt_array($this->connector, $originalRequest);
         if ($this->hasConnection()) {
-            curl_exec($this->connector);
+            return curl_exec($this->connector);
         }
         else {
             throw new ServiceUnavailableException($this->getServiceId());
@@ -116,17 +108,13 @@ class RestClient extends Client
      */
     protected function prepareRequest($method = "", $params = [])
     {
-        $method = strtolower($method);
-        if (!in_array($method, $this->allowedMethods)) {
-            throw new UnknownAPIException(\Yii::$app->controller->id, 'method');
-        }
-        // set request type
-        switch ($method) {
+        // switch request type
+        switch (strtolower($method)) {
 
             case 'get':
                 $originalRequest =
                     [
-                        CURLOPT_URL     => $this->getServerUrl() . "/$method?" . http_build_query($params),
+                        CURLOPT_URL     => $this->getServerUrl() . "?" . http_build_query($params),
                         CURLOPT_HTTPGET => true,
                     ];
                 break;
@@ -134,18 +122,14 @@ class RestClient extends Client
             case 'post':
                 $originalRequest =
                     [
-                        CURLOPT_URL        => $this->getServerUrl() . "/$method",
+                        CURLOPT_URL        => $this->getServerUrl(),
                         CURLOPT_POST       => true,
                         CURLOPT_POSTFIELDS => http_build_query($params)
                     ];
                 break;
 
             default :
-                $originalRequest =
-                    [
-                        CURLOPT_URL           => $this->getServerUrl() . "/$method",
-                        CURLOPT_CUSTOMREQUEST => $method
-                    ];
+                throw new UnknownAPIException($this->getServiceId(), $method);
                 break;
         }
         return
@@ -164,7 +148,8 @@ class RestClient extends Client
      */
     protected function prepareResponse($originalResponse)
     {
-        return Json::decode($originalResponse);
+        curl_close($this->connector);
+        return $originalResponse;
     }
 
 
@@ -177,11 +162,11 @@ class RestClient extends Client
             return true;
         }
         $fp = @fsockopen(
-            $this->host,
-            $this->port,
+            'tcp://' . $this->host,
+            80,
             $errCode,
             $errStr,
-            $this->timeout
+            1
         );
         if ($fp) {
             fclose($fp);
@@ -198,7 +183,7 @@ class RestClient extends Client
     {
         $serverUrl = $this->hostPrefix . $this->host;
         $serverUrl .= !empty($this->port) ? ":$this->port" : "";
-        $serverUrl .= !empty($this->uri) ? "$this->uri" : "";
+        $serverUrl .= !empty($this->uri) ? "/$this->uri" : "";
         return $serverUrl;
     }
 
