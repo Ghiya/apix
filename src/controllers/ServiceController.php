@@ -27,6 +27,17 @@ abstract class ServiceController extends Controller
 
 
     /**
+     * @var string
+     */
+    public $title = '';
+
+
+    /**
+     * @var string
+     */
+    public $description = '';
+
+    /**
      * @var array
      */
     public $service = [];
@@ -81,7 +92,7 @@ abstract class ServiceController extends Controller
      */
     public function sendQuery(Query &$query)
     {
-        $this->module->getServiceWithParams($this->service)->sendRequest($query);
+        $this->module->getConnector($this->service)->sendRequest($query);
     }
 
 }

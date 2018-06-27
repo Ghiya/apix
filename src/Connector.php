@@ -16,10 +16,10 @@ use yii\base\InvalidConfigException;
 use yii\helpers\ArrayHelper;
 
 /**
- * Class Service
+ * Class Connector
  * @package Apix
  */
-class Service extends BaseObject
+class Connector extends BaseObject
 {
 
 

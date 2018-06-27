@@ -30,9 +30,9 @@ class APIx extends Module implements BootstrapInterface
 
 
     /**
-     * @var Service[]
+     * @var Connector[]
      */
-    private $_services = [];
+    private $_connectors = [];
 
 
     /**
@@ -103,17 +103,17 @@ class APIx extends Module implements BootstrapInterface
 
 
     /**
-     * @param array $serviceParams
+     * @param array $params
      *
-     * @return Service
+     * @return Connector
      */
-    public function getServiceWithParams($serviceParams = [])
+    public function getConnector($params = [])
     {
-        $instanceHash = md5(Json::encode($serviceParams));
-        if (!isset($this->_services[$instanceHash])) {
-            $this->_services[$instanceHash] = new Service($serviceParams);
+        $instanceHash = md5(Json::encode($params));
+        if (!isset($this->_connectors[$instanceHash])) {
+            $this->_connectors[$instanceHash] = new Connector($params);
         }
-        return $this->_services[$instanceHash];
+        return $this->_connectors[$instanceHash];
     }
 
 }
