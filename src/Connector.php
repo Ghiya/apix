@@ -7,7 +7,7 @@
 namespace ghiyam\apix;
 
 
-use ghiyam\apix\client\RestClient;
+use ghiyam\apix\client\CurlClient;
 use ghiyam\apix\client\SmppClient;
 use ghiyam\apix\client\SoapClient;
 use ghiyam\apix\query\Query;
@@ -26,7 +26,7 @@ class Connector extends BaseObject
     const TYPE_SOAP = 'soap';
 
 
-    const TYPE_REST = 'rest';
+    const TYPE_REST = 'curl';
 
 
     const TYPE_SMPP = 'smpp';
@@ -44,7 +44,7 @@ class Connector extends BaseObject
 
 
     /**
-     * @var RestClient|SoapClient|SmppClient
+     * @var CurlClient|SoapClient|SmppClient
      */
     private $_client;
 
@@ -61,7 +61,7 @@ class Connector extends BaseObject
         switch ($this->type) {
 
             case self::TYPE_REST :
-                $this->_client = new RestClient($this->params);
+                $this->_client = new CurlClient($this->params);
                 break;
 
             case self::TYPE_SOAP :
@@ -73,7 +73,7 @@ class Connector extends BaseObject
                 break;
 
             default :
-                throw new InvalidConfigException("Property `type` must be set.");
+                throw new InvalidConfigException("Property `type` has illegal value: $this->type.");
                 break;
         }
     }

@@ -12,13 +12,13 @@ use yii\base\InvalidConfigException;
 use yii\helpers\ArrayHelper;
 
 /**
- * Class RestClient
+ * Class CurlClient
  *
  * @property resource $connector cURL handler
  *
  * @package ghiyam\apix\client
  */
-class RestClient extends Client
+class CurlClient extends Client
 {
 
 

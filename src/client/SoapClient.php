@@ -80,12 +80,13 @@ class SoapClient extends Client
      */
     public function sendRequest($originalRequest)
     {
-        return $this->connector->__doRequest(
-            $originalRequest,
-            $this->soap['location'],
-            null,
-            $this->soap['soap_version']
-        );
+        return
+            $this->connector->__doRequest(
+                $originalRequest,
+                $this->soap['location'],
+                null,
+                $this->soap['soap_version']
+            );
     }
 
 
@@ -94,7 +95,14 @@ class SoapClient extends Client
      */
     protected function prepareResponse($originalResponse)
     {
-        $responseXML = new \SimpleXMLElement(preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $originalResponse));
+        $responseXML =
+            new \SimpleXMLElement(
+                preg_replace(
+                    "/(<\/?)(\w+):([^>]*>)/",
+                    "$1$2$3",
+                    $originalResponse
+                )
+            );
         if ($responseXML->xpath('//return') !== null) {
             $array = Json::decode(Json::encode((array)$responseXML->xpath('//return')));
             if (!empty($array[0]['row'])) {

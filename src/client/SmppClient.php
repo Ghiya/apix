@@ -17,7 +17,7 @@ use yii\helpers\Html;
  *
  * @package ghiyam\apix\client
  */
-class SmppClient extends RestClient
+class SmppClient extends CurlClient
 {
 
 
