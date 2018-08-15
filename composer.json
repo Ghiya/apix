@@ -9,6 +9,10 @@
   "type": "yii2-extension",
   "require": {
     "php": ">=5.5.0",
+    "ext-curl": "*",
+    "ext-simplexml": "*",
+    "ext-soap": "*",
+    "ext-dom": "*",
     "php-smpp/php-smpp": "^1.2"
   },
   "require-dev": {

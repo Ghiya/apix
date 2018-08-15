@@ -9,6 +9,7 @@ namespace ghiyam\apix\client;
 
 use ghiyam\apix\exceptions\ClientRequestException;
 use yii\base\BaseObject;
+use yii\helpers\Json;
 
 /**
  * Class Client
@@ -73,7 +74,12 @@ abstract class Client extends BaseObject
             return true;
         }
         $this->_originalRequest = $this->prepareRequest($method, $params);
-        \Yii::debug("Requesting: " . $this->_originalRequest, __METHOD__);
+        \Yii::debug(
+            is_array($this->_originalRequest) ?
+                "Requesting: " . Json::encode($this->_originalRequest) :
+                "Requesting: " . (string)$this->_originalRequest,
+            __METHOD__
+        );
         $this->_originalResponse = $this->sendRequest($this->_originalRequest);
         return $this->prepareResponse($this->_originalResponse);
     }
