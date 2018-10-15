@@ -95,6 +95,9 @@ class SoapClient extends Client
      */
     protected function prepareResponse($originalResponse)
     {
+        if (empty($originalResponse)) {
+            throw new ClientRequestException("Server response is `NULL`.");
+        }
         $responseXML =
             new \SimpleXMLElement(
                 preg_replace(
