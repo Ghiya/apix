@@ -13,6 +13,9 @@ use yii\helpers\Json;
 
 /**
  * Class Client
+ *
+ * @property string $cachedResponse
+ *
  * @package ghiyam\apix\client
  */
 abstract class Client extends BaseObject
@@ -29,6 +32,12 @@ abstract class Client extends BaseObject
      * @var bool
      */
     public $emulate = false;
+
+
+    /**
+     * @var bool
+     */
+    public $useCache = false;
 
 
     /**
@@ -81,7 +90,40 @@ abstract class Client extends BaseObject
             __METHOD__
         );
         $this->_originalResponse = $this->sendRequest($this->_originalRequest);
+        if ($this->useCache) {
+            if (!empty($this->cachedResponse)) {
+                \Yii::debug("Cached value");
+                $this->_originalResponse = $this->cachedResponse;
+            }
+            else {
+                $this->_originalResponse = $this->sendRequest($this->_originalRequest);
+                $this->cachedResponse = $this->_originalResponse;
+            }
+        }
+        else {
+            $this->_originalResponse = $this->sendRequest($this->_originalRequest);
+        }
         return $this->prepareResponse($this->_originalResponse);
+    }
+
+
+    /**
+     * @return string
+     */
+    public function getCachedResponse()
+    {
+        $hash = md5(Json::encode($this->_originalRequest));
+        return (string)\Yii::$app->cache->get($hash);
+    }
+
+
+    /**
+     * @param string $response
+     */
+    public function setCachedResponse($response)
+    {
+        $hash = md5(Json::encode($this->_originalRequest));
+        \Yii::$app->cache->set($hash, $response);
     }
 
 
