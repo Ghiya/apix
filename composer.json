@@ -12,10 +12,6 @@
     "php-smpp/php-smpp": "^1.2"
   },
   "require-dev": {
-    "ext-curl": "*",
-    "ext-simplexml": "*",
-    "ext-soap": "*",
-    "ext-dom": "*",
     "yiisoft/yii2": "~2.0.14",
     "yiisoft/yii2-debug": "~2.0.0"
   },
