@@ -34,9 +34,21 @@ class SmppClient extends CurlClient
 
 
     /**
+     * @var int
+     */
+    public $timeout = 3000;
+
+
+    /**
      * @var \SocketTransport
      */
     protected $transport;
+
+
+    /**
+     * @var bool
+     */
+    private $_isProcessing = false;
 
 
     /**
@@ -56,18 +68,15 @@ class SmppClient extends CurlClient
         if (empty($this->smpp['password'])) {
             throw new InvalidConfigException('Property `smpp[\'password\']` must be set.');
         }
+        if ($this->isDebug) {
+            \SocketTransport::$defaultDebug = true;
+        }
         $this->transport = new \SocketTransport([$this->host], $this->port);
-        $this->transport->setRecvTimeout(10000);
+        $this->transport->setRecvTimeout($this->timeout);
         $this->connector = new \SmppClient($this->transport);
         // Activate binary hex-output of server interaction
         if ($this->isDebug) {
             $this->connector->debug = true;
-            $this->transport->debug = true;
-        }
-        if (!empty($this->smpp['options'])) {
-            foreach ($this->smpp['options'] as $option => $value) {
-                \SmppClient::${$option} = $value;
-            }
         }
     }
 
@@ -79,6 +88,11 @@ class SmppClient extends CurlClient
     {
         $this->transport->open();
         $this->connector->bindTransmitter($this->smpp['username'], $this->smpp['password']);
+        if (!empty($this->smpp['options'])) {
+            foreach ($this->smpp['options'] as $option => $value) {
+                \SmppClient::${$option} = $value;
+            }
+        }
         return [
             'from' => new \SmppAddress($method, \SMPP::TON_ALPHANUMERIC),
             'to'   => new \SmppAddress($params['to'], \SMPP::TON_INTERNATIONAL, \SMPP::NPI_E164),
@@ -93,6 +107,7 @@ class SmppClient extends CurlClient
     protected function prepareResponse($originalResponse)
     {
         $this->connector->close();
+        $this->_isProcessing = false;
         return !empty($originalResponse['id']);
     }
 
@@ -102,18 +117,23 @@ class SmppClient extends CurlClient
      */
     public function sendRequest($originalRequest)
     {
-        return
-            [
-                'id'     =>
-                    $this->connector->sendSMS(
-                        $originalRequest['from'],
-                        $originalRequest['to'],
-                        $originalRequest['text'],
-                        isset($this->smpp['tags']) ? $this->smpp['tags'] : null,
-                        isset($this->smpp['encoding']) ? $this->smpp['encoding'] : \SMPP::DATA_CODING_DEFAULT
-                    ),
-                'source' => $originalRequest['to']
-            ];
+        // @todo исправить багу
+        // исправление баги задваивания отправки СМС
+        if (!$this->_isProcessing) {
+            $this->_isProcessing = true;
+            return
+                [
+                    'id'     =>
+                        $this->connector->sendSMS(
+                            $originalRequest['from'],
+                            $originalRequest['to'],
+                            $originalRequest['text'],
+                            isset($this->smpp['tags']) ? $this->smpp['tags'] : null,
+                            isset($this->smpp['encoding']) ? $this->smpp['encoding'] : \SMPP::DATA_CODING_DEFAULT
+                        ),
+                    'source' => $originalRequest['to']
+                ];
+        }
     }
 
 }
