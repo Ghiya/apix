@@ -103,7 +103,11 @@ class SoapClient extends Client
                 preg_replace(
                     "/(<\/?)(\w+):([^>]*>)/",
                     "$1$2$3",
-                    $originalResponse
+                    preg_replace(
+                        "/(\&|\&\#)[\d\w]+;/",
+                        "",
+                        $originalResponse
+                    )
                 )
             );
         if ($responseXML->xpath('//return') !== null) {
