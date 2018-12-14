@@ -10,6 +10,7 @@ use ghiyam\apix\exceptions\ServiceUnavailableException;
 use ghiyam\apix\exceptions\UnknownAPIException;
 use yii\base\InvalidConfigException;
 use yii\helpers\ArrayHelper;
+use yii\helpers\UnsetArrayValue;
 
 /**
  * Class CurlClient
@@ -94,8 +95,7 @@ class CurlClient extends Client
         curl_setopt_array($this->connector, $originalRequest);
         if ($this->hasConnection()) {
             return curl_exec($this->connector);
-        }
-        else {
+        } else {
             throw new ServiceUnavailableException($this->getServiceId());
         }
     }
@@ -108,13 +108,21 @@ class CurlClient extends Client
      */
     protected function prepareRequest($method = "", $params = [])
     {
+        // устанавливает метод для запроса к API если он указан
+        $apiMethod = isset($params['apiMethod']) ? $params['apiMethod'] : '';
+        $params = ArrayHelper::merge(
+            $params,
+            [
+                'apiMethod' => new UnsetArrayValue()
+            ]
+        );
         // switch request type
         switch (strtolower($method)) {
 
             case 'get':
                 $originalRequest =
                     [
-                        CURLOPT_URL     => $this->getServerUrl() . "?" . http_build_query($params),
+                        CURLOPT_URL     => $this->getServerUrl() . "/$apiMethod?" . http_build_query($params),
                         CURLOPT_HTTPGET => true,
                     ];
                 break;
@@ -122,7 +130,7 @@ class CurlClient extends Client
             case 'post':
                 $originalRequest =
                     [
-                        CURLOPT_URL        => $this->getServerUrl(),
+                        CURLOPT_URL        => $this->getServerUrl() . "/$apiMethod",
                         CURLOPT_POST       => true,
                         CURLOPT_POSTFIELDS => http_build_query($params)
                     ];
