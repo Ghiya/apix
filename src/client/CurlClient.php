@@ -62,7 +62,7 @@ class CurlClient extends Client
     /**
      * @var bool
      */
-    public $checkConnection = false;
+    public $checkConnection = true;
 
 
     /**
@@ -93,7 +93,7 @@ class CurlClient extends Client
     public function sendRequest($originalRequest)
     {
         curl_setopt_array($this->connector, $originalRequest);
-        if ($this->hasConnection()) {
+        if ($this->checkConnection()) {
             return curl_exec($this->connector);
         } else {
             throw new ServiceUnavailableException($this->getServiceId());
@@ -164,9 +164,9 @@ class CurlClient extends Client
     /**
      * @return bool
      */
-    protected function hasConnection()
+    protected function checkConnection()
     {
-        if ($this->emulate) {
+        if ($this->emulate || !$this->checkConnection) {
             return true;
         }
         $fp = @fsockopen(
