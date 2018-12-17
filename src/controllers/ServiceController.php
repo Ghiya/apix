@@ -94,7 +94,7 @@ abstract class ServiceController extends Controller
      */
     public function sendQuery(Query &$query)
     {
-        $this->module->getConnector($this->service)->sendRequest($query);
+        $this->getConnector()->sendRequest($query);
     }
 
     /**
@@ -102,7 +102,8 @@ abstract class ServiceController extends Controller
      *
      * @return Connector
      */
-    final public function getConnector() {
+    final public function getConnector()
+    {
         return $this->module->getConnector($this->service);
     }
 

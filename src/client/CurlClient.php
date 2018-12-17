@@ -15,7 +15,8 @@ use yii\helpers\UnsetArrayValue;
 /**
  * Class CurlClient
  *
- * @property resource $connector cURL handler
+ * @property-read resource $connector cURL handler
+ * @property-read mixed $info
  *
  * @package ghiyam\apix\client
  */
@@ -58,12 +59,25 @@ class CurlClient extends Client
      */
     public $timeout = 3;
 
+    /**
+     * @var bool
+     */
+    public $jsonEncoded = false;
+
+    /**
+     * @var array
+     */
+    public $curlOptions = [];
 
     /**
      * @var bool
      */
     public $checkConnection = true;
 
+    /**
+     * @var mixed
+     */
+    private $_info;
 
     /**
      * @throws InvalidConfigException
@@ -94,12 +108,22 @@ class CurlClient extends Client
     {
         curl_setopt_array($this->connector, $originalRequest);
         if ($this->checkConnection()) {
-            return curl_exec($this->connector);
+            $result = curl_exec($this->connector);
+            $this->_info = curl_getinfo($this->connector);
+            return $result;
         } else {
             throw new ServiceUnavailableException($this->getServiceId());
         }
     }
 
+    /**
+     * Возвращает информацию о curl соединении.
+     * @return mixed
+     */
+    public function getInfo()
+    {
+        return $this->_info;
+    }
 
     /**
      * {@inheritdoc}
@@ -108,6 +132,8 @@ class CurlClient extends Client
      */
     protected function prepareRequest($method = "", $params = [])
     {
+        // для этого клиента хранит конфигурацию curl соединения
+        $originalRequest = [];
         // устанавливает метод для запроса к API если он указан
         $apiMethod = isset($params['apiMethod']) ? $params['apiMethod'] : '';
         $params = ArrayHelper::merge(
@@ -116,14 +142,20 @@ class CurlClient extends Client
                 'apiMethod' => new UnsetArrayValue()
             ]
         );
+        if ($this->jsonEncoded) {
+            $params = json_encode($params, JSON_UNESCAPED_UNICODE);
+        }
         // switch request type
         switch (strtolower($method)) {
 
             case 'get':
                 $originalRequest =
                     [
-                        CURLOPT_URL     => $this->getServerUrl() . "/$apiMethod?" . http_build_query($params),
-                        CURLOPT_HTTPGET => true,
+                        CURLOPT_URL  =>
+                            !empty($params) ?
+                                $this->getServerUrl() . "/$apiMethod?" . http_build_query($params) :
+                                $this->getServerUrl() . "/$apiMethod",
+                        CURLOPT_POST => false,
                     ];
                 break;
 
@@ -132,21 +164,21 @@ class CurlClient extends Client
                     [
                         CURLOPT_URL        => $this->getServerUrl() . "/$apiMethod",
                         CURLOPT_POST       => true,
-                        CURLOPT_POSTFIELDS => http_build_query($params)
+                        CURLOPT_POSTFIELDS => $params
                     ];
                 break;
 
             default :
-                throw new UnknownAPIException($this->getServiceId(), $method);
+
                 break;
+        }
+        if (!empty($this->headers)) {
+            $originalRequest[CURLOPT_HTTPHEADER] = $this->headers;
         }
         return
             ArrayHelper::merge(
                 $originalRequest,
-                [
-                    CURLOPT_HTTPHEADER =>
-                        $this->headers
-                ]
+                $this->curlOptions
             );
     }
 
