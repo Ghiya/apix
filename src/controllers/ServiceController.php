@@ -9,6 +9,7 @@ namespace ghiyam\apix\controllers;
 
 use ghiyam\apix\actions\FetchAction;
 use ghiyam\apix\APIx;
+use ghiyam\apix\Connector;
 use ghiyam\apix\exceptions\UnknownAPIException;
 use ghiyam\apix\query\Query;
 use yii\base\ActionEvent;
@@ -18,7 +19,8 @@ use yii\base\InvalidRouteException;
 /**
  * Class ServiceController
  *
- * @property APIx $module
+ * @property-read APIx $module
+ * @property-read Connector $connector
  *
  * @package ghiyam\apix\controllers
  */
@@ -93,6 +95,15 @@ abstract class ServiceController extends Controller
     public function sendQuery(Query &$query)
     {
         $this->module->getConnector($this->service)->sendRequest($query);
+    }
+
+    /**
+     * Возвращает объект соединения контроллера сервиса API.
+     *
+     * @return Connector
+     */
+    final public function getConnector() {
+        return $this->module->getConnector($this->service);
     }
 
 }

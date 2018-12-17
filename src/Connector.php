@@ -17,6 +17,9 @@ use yii\helpers\ArrayHelper;
 
 /**
  * Class Connector
+ *
+ * @property-read CurlClient|SmppClient|SoapClient
+ *
  * @package Apix
  */
 class Connector extends BaseObject
@@ -78,6 +81,15 @@ class Connector extends BaseObject
         }
     }
 
+    /**
+     * Возвращает клиента соединения.
+     *
+     * @return CurlClient|SmppClient|SoapClient
+     */
+    final public function getClient()
+    {
+        return $this->_client;
+    }
 
     /**
      * @param Query $query
@@ -93,12 +105,10 @@ class Connector extends BaseObject
             // if callable result
             if (is_callable($query->result)) {
                 $parsedResult = call_user_func($query->result, $query->fetched);
-            }
-            // if strict value result
+            } // if strict value result
             elseif (is_string($query->result) && !is_numeric($query->result)) {
                 $parsedResult = ArrayHelper::getValue($query->fetched, $query->result);
-            }
-            // if an array subset result
+            } // if an array subset result
             elseif (is_array($query->result)) {
                 $parsedResult = ArrayHelper::filter($query->fetched, $query->result);
             }
