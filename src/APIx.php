@@ -17,7 +17,7 @@ use yii\helpers\Json;
  *
  *
  * @package ghiyam\apix
- * @version v0.2.4
+ * @version v0.2.8
  */
 class APIx extends Module implements BootstrapInterface
 {
@@ -26,7 +26,7 @@ class APIx extends Module implements BootstrapInterface
     /**
      * @var string
      */
-    public $version = "v0.2.4";
+    public $version = "v0.2.8";
 
 
     /**
