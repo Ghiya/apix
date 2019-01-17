@@ -7,7 +7,6 @@ namespace ghiyam\apix\client;
 
 
 use ghiyam\apix\exceptions\ServiceUnavailableException;
-use ghiyam\apix\exceptions\UnknownAPIException;
 use yii\base\InvalidConfigException;
 use yii\helpers\ArrayHelper;
 use yii\helpers\UnsetArrayValue;
@@ -16,7 +15,7 @@ use yii\helpers\UnsetArrayValue;
  * Class CurlClient
  *
  * @property-read resource $connector cURL handler
- * @property-read mixed $info
+ * @property-read mixed    $info
  *
  * @package ghiyam\apix\client
  */
@@ -62,7 +61,7 @@ class CurlClient extends Client
     /**
      * @var bool
      */
-    public $jsonEncoded = false;
+    public $jsonEncodedOnPost = false;
 
     /**
      * @var array
@@ -127,8 +126,6 @@ class CurlClient extends Client
 
     /**
      * {@inheritdoc}
-     *
-     * @throws UnknownAPIException
      */
     protected function prepareRequest($method = "", $params = [])
     {
@@ -142,9 +139,6 @@ class CurlClient extends Client
                 'apiMethod' => new UnsetArrayValue()
             ]
         );
-        if ($this->jsonEncoded) {
-            $params = json_encode($params, JSON_UNESCAPED_UNICODE);
-        }
         // switch request type
         switch (strtolower($method)) {
 
@@ -160,11 +154,15 @@ class CurlClient extends Client
                 break;
 
             case 'post':
+                if ( $this->jsonEncodedOnPost ) {
+                    $params = json_encode($params, JSON_UNESCAPED_UNICODE);
+                }
                 $originalRequest =
                     [
                         CURLOPT_URL        => $this->getServerUrl() . "/$apiMethod",
                         CURLOPT_POST       => true,
                         CURLOPT_POSTFIELDS => $params
+
                     ];
                 break;
 
