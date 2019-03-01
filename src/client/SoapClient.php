@@ -110,28 +110,37 @@ class SoapClient extends Client
                     )
                 )
             );
-        if ($responseXML->xpath('//return') !== null) {
+        if (!empty($responseXML->xpath('//return'))) {
             $array = Json::decode(Json::encode((array)$responseXML->xpath('//return')));
             if (!empty($array[0]['row'])) {
                 return $array[0]['row'];
-            }
-            elseif (isset($array[0][0])) {
+            } elseif (isset($array[0][0])) {
                 return $array[0][0];
-            }
-            else {
+            } else {
                 return null;
             }
-        }
-        elseif ($responseXML->xpath('soapenvBody')[0] !== null) {
+        } elseif ($responseXML->xpath('soapenvBody')[0] !== null) {
             $response = (array)$responseXML->xpath('soapenvBody')[0]->children()->children();
             // если получено сообщение об ошибке
-            if (ArrayHelper::isIn('faultcode', array_keys($response))) {
+            if (in_array('faultcode', array_keys($response))) {
                 throw new ClientRequestException(
                     ArrayHelper::getValue($response, 'faultstring') . ": " .
                     ArrayHelper::getValue($response, 'detail')->children()->exceptionName->__toString()
                 );
-            }
-            else {
+            } elseif ($responseXML->xpath('/soapenvFault') !== null) {
+                throw new ClientRequestException(
+                    ArrayHelper::getValue(
+                        $responseXML->xpath('/soapenvFault')[0],
+                        'detail'
+                    )
+                        ->children()->exceptionName->__toString()
+                    . " : " .
+                    ArrayHelper::getValue(
+                        $responseXML->xpath('/soapenvFault')[0]->children(),
+                        'faultstring'
+                    )
+                );
+            } else {
                 return Json::decode(Json::encode((array)$response));
             }
         }
@@ -215,8 +224,7 @@ class SoapClient extends Client
                         $methodParam->appendChild($values);
                     }
                     $method->appendChild($methodParam);
-                }
-                else {
+                } else {
                     $method->appendChild($envelope->createElement($key, $value));
                 }
             }
