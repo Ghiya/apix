@@ -15,6 +15,7 @@ use ghiyam\apix\query\Query;
 use yii\base\ActionEvent;
 use yii\base\Controller;
 use yii\base\InvalidRouteException;
+use yii\helpers\Json;
 
 /**
  * Class ServiceController

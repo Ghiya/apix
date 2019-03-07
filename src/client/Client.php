@@ -89,7 +89,6 @@ abstract class Client extends BaseObject
                 "Requesting: " . (string)$this->_originalRequest,
             __METHOD__
         );
-        $this->_originalResponse = $this->sendRequest($this->_originalRequest);
         if ($this->useCache) {
             if (!empty($this->cachedResponse)) {
                 \Yii::debug("Cached value");

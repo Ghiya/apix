@@ -119,26 +119,13 @@ class SoapClient extends Client
             } else {
                 return null;
             }
-        } elseif ($responseXML->xpath('soapenvBody')[0] !== null) {
-            $response = (array)$responseXML->xpath('soapenvBody')[0]->children()->children();
+        } elseif (!empty($responseXML->xpath('soapenvBody/soapenvFault'))) {
+            $response = (array)$responseXML->xpath('soapenvBody/soapenvFault')[0];
             // если получено сообщение об ошибке
             if (in_array('faultcode', array_keys($response))) {
                 throw new ClientRequestException(
                     ArrayHelper::getValue($response, 'faultstring') . ": " .
                     ArrayHelper::getValue($response, 'detail')->children()->exceptionName->__toString()
-                );
-            } elseif ($responseXML->xpath('/soapenvFault') !== null) {
-                throw new ClientRequestException(
-                    ArrayHelper::getValue(
-                        $responseXML->xpath('/soapenvFault')[0],
-                        'detail'
-                    )
-                        ->children()->exceptionName->__toString()
-                    . " : " .
-                    ArrayHelper::getValue(
-                        $responseXML->xpath('/soapenvFault')[0]->children(),
-                        'faultstring'
-                    )
                 );
             } else {
                 return Json::decode(Json::encode((array)$response));
