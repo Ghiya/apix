@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2018. Ghiya <ghiya@mikadze.me>
+ * Copyright (c) 2018-2019. Ghiya <ghiya@mikadze.me>
  */
 
 namespace ghiyam\apix;
