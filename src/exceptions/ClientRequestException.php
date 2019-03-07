@@ -7,24 +7,22 @@
 namespace ghiyam\apix\exceptions;
 
 
-use yii\base\ExitException;
+use yii\web\HttpException;
 
 /**
  * Class ClientRequestException
  * @package ghiyam\apix\exceptions
  */
-class ClientRequestException extends ExitException
+class ClientRequestException extends HttpException
 {
-
 
     /**
      * ClientRequestException constructor.
-     *
-     * @param $message
+     * @param null $message
      */
-    public function __construct($message)
+    public function __construct($message = null)
     {
-        parent::__construct(500, $message, 0);
+        parent::__construct(400, $message, 0, null);
     }
 
 }
