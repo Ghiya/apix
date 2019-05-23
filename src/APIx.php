@@ -6,10 +6,14 @@
 namespace ghiyam\apix;
 
 
+use Yii;
 use yii\base\BootstrapInterface;
 use yii\base\DynamicModel;
 use yii\base\InvalidConfigException;
+use yii\base\InvalidRouteException;
 use yii\base\Module;
+use yii\console\Exception;
+use yii\console\Response;
 use yii\helpers\Json;
 
 /**
@@ -91,14 +95,14 @@ class APIx extends Module implements BootstrapInterface
     /**
      * @param string $route
      * @param array  $params
-     *
-     * @return mixed
+     * @return int|mixed|Response
      * @throws InvalidConfigException
-     * @throws \yii\base\InvalidRouteException
+     * @throws InvalidRouteException
+     * @throws Exception
      */
     public function runAction($route, $params = [])
     {
-        return parent::runAction($this->getServiceRoute($route, $params), $params);
+        return Yii::$app->runAction("/$this->id/" . $this->getServiceRoute($route, $params), $params);
     }
 
 
