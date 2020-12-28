@@ -60,7 +60,10 @@ class SoapClient extends Client
 
 
     /**
+     * @inheritDoc
+     *
      * @throws InvalidConfigException
+     * @throws \SoapFault
      */
     public function init()
     {
@@ -71,12 +74,16 @@ class SoapClient extends Client
         if (empty($this->soap)) {
             throw new InvalidConfigException('Property `soap` must be set.');
         }
+        // устанавливает параметры контекста если они определены
+        if ( !empty($this->soap['stream_context']) ) {
+            $this->soap['stream_context'] = stream_context_create($this->soap['stream_context']);
+        }
         $this->connector = new \SoapClient(null, $this->soap);
     }
 
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function sendRequest($originalRequest)
     {
@@ -91,7 +98,7 @@ class SoapClient extends Client
 
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     protected function prepareResponse($originalResponse)
     {
@@ -136,7 +143,7 @@ class SoapClient extends Client
 
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     protected function prepareRequest($method = "", $params = [])
     {
