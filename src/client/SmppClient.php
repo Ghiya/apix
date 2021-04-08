@@ -7,13 +7,14 @@
 namespace ghiyam\apix\client;
 
 
+use smpp\{Address, SMPP, Client, transport\Socket};
 use yii\base\InvalidConfigException;
 use yii\helpers\Html;
 
 /**
  * Class SmppClient
  *
- * @property \SmppClient $connector;
+ * @property Client $connector;
  *
  * @package ghiyam\apix\client
  */
@@ -40,7 +41,7 @@ class SmppClient extends CurlClient
 
 
     /**
-     * @var \SocketTransport
+     * @var Socket
      */
     protected $transport;
 
@@ -69,13 +70,14 @@ class SmppClient extends CurlClient
             throw new InvalidConfigException('Property `smpp[\'password\']` must be set.');
         }
         if ($this->isDebug) {
-            \SocketTransport::$defaultDebug = true;
+            Socket::$defaultDebug = true;
         }
-        $this->transport = new \SocketTransport([$this->host], $this->port);
+        $this->transport = new Socket([$this->host], $this->port);
         $this->transport->setRecvTimeout($this->timeout);
-        $this->connector = new \SmppClient($this->transport);
+        $this->connector = new Client($this->transport);
         // Activate binary hex-output of server interaction
         if ($this->isDebug) {
+            $this->transport->debug = true;
             $this->connector->debug = true;
         }
     }
@@ -90,12 +92,12 @@ class SmppClient extends CurlClient
         $this->connector->bindTransmitter($this->smpp['username'], $this->smpp['password']);
         if (!empty($this->smpp['options'])) {
             foreach ($this->smpp['options'] as $option => $value) {
-                \SmppClient::${$option} = $value;
+                Client::${$option} = $value;
             }
         }
         return [
-            'from' => new \SmppAddress($method, \SMPP::TON_ALPHANUMERIC),
-            'to'   => new \SmppAddress($params['to'], \SMPP::TON_INTERNATIONAL, \SMPP::NPI_E164),
+            'from' => new Address($method, SMPP::TON_ALPHANUMERIC),
+            'to' => new Address($params['to'], SMPP::TON_INTERNATIONAL, SMPP::NPI_E164),
             'text' => mb_convert_encoding(trim(strip_tags(Html::decode($params['text']))), "UCS-2BE"),
         ];
     }
@@ -129,7 +131,7 @@ class SmppClient extends CurlClient
                             $originalRequest['to'],
                             $originalRequest['text'],
                             isset($this->smpp['tags']) ? $this->smpp['tags'] : null,
-                            isset($this->smpp['encoding']) ? $this->smpp['encoding'] : \SMPP::DATA_CODING_DEFAULT
+                            isset($this->smpp['encoding']) ? $this->smpp['encoding'] : SMPP::DATA_CODING_DEFAULT
                         ),
                     'source' => $originalRequest['to']
                 ];
