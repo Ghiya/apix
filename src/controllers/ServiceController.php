@@ -1,6 +1,7 @@
 <?php
-/**
- * Copyright (c) 2018-2019. Ghiya <ghiya@mikadze.me>
+/*
+ * @copyright Copyright (c) 2018-2021
+ * @author Ghiya Mikadze <g.mikadze@lakka.io>
  */
 
 
@@ -9,31 +10,28 @@ namespace ghiyam\apix\controllers;
 
 use ghiyam\apix\actions\FetchAction;
 use ghiyam\apix\APIx;
-use ghiyam\apix\Connector;
+use ghiyam\apix\exceptions\ApiClientFetchException;
 use ghiyam\apix\exceptions\UnknownAPIException;
-use ghiyam\apix\query\Query;
+use ghiyam\apix\Service;
 use yii\base\ActionEvent;
 use yii\base\Controller;
 use yii\base\InvalidRouteException;
-use yii\helpers\Json;
 
 /**
  * Class ServiceController
  *
- * @property-read APIx $module
- * @property-read Connector $connector
+ * @property-read APIx    $module
+ * @property-read Service $apiService
  *
  * @package ghiyam\apix\controllers
  */
 abstract class ServiceController extends Controller
 {
 
-
     /**
      * @var string
      */
     public $title = '';
-
 
     /**
      * @var string
@@ -45,15 +43,8 @@ abstract class ServiceController extends Controller
      */
     public $service = [];
 
-
     /**
-     * @var array
-     */
-    public $routeRules = [];
-
-
-    /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function init()
     {
@@ -62,18 +53,15 @@ abstract class ServiceController extends Controller
             self::EVENT_AFTER_ACTION,
             function (ActionEvent $event) {
                 if ($event->action instanceof FetchAction) {
-                    /** @var FetchAction $fetchAction */
-                    $fetchAction = $event->action;
-                    $event->result = $fetchAction->fetchResult($event->result);
-                    $event->handled = $fetchAction->eventHandled;
+                    $event->result = $this->runFetchAction($event->action, $event->result);
+                    $event->handled = $event->action->eventHandled;
                 }
             }
         );
     }
 
-
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      *
      * @throws UnknownAPIException
      */
@@ -86,26 +74,14 @@ abstract class ServiceController extends Controller
         }
     }
 
-
     /**
-     * @param Query $query
-     *
-     * @throws \ErrorException
-     * @throws \ghiyam\apix\exceptions\ClientRequestException
+     * @param FetchAction $fetchAction
+     * @param array       $actionResult
+     * @return array|bool|mixed
+     * @throws ApiClientFetchException
      */
-    public function sendQuery(Query &$query)
+    protected function runFetchAction(FetchAction $fetchAction, array $actionResult)
     {
-        $this->getConnector()->sendRequest($query);
+        return $this->module->getService($this->service)->send($actionResult, $fetchAction->requestType);
     }
-
-    /**
-     * Возвращает объект соединения контроллера сервиса API.
-     *
-     * @return Connector
-     */
-    final public function getConnector()
-    {
-        return $this->module->getConnector($this->service);
-    }
-
 }

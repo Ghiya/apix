@@ -1,6 +1,7 @@
 <?php
-/**
- * Copyright (c) 2018-2019. Ghiya <ghiya@mikadze.me>
+/*
+ * @copyright Copyright (c) 2018-2021
+ * @author Ghiya Mikadze <g.mikadze@lakka.io>
  */
 
 namespace ghiyam\apix;
@@ -21,7 +22,7 @@ use yii\helpers\Json;
  *
  *
  * @package ghiyam\apix
- * @version v0.2.9
+ * @version 2.0.0
  */
 class APIx extends Module implements BootstrapInterface
 {
@@ -30,17 +31,17 @@ class APIx extends Module implements BootstrapInterface
     /**
      * @var string
      */
-    public $version = "v0.2.9";
+    public $version = "2.0.0";
 
 
     /**
-     * @var Connector[]
+     * @var Service[]
      */
-    private $_connectors = [];
+    private $_services = [];
 
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      *
      * Used to prevent `null` result on [APIx::getInstance()].
      */
@@ -54,7 +55,7 @@ class APIx extends Module implements BootstrapInterface
      *
      * @return array
      */
-    protected function getRouteRules($route = "")
+    protected function getRouteRules(string $route = ""): array
     {
         $routeRules = [];
         foreach ($this->controllerMap as $serviceId => $serviceConfig) {
@@ -73,20 +74,20 @@ class APIx extends Module implements BootstrapInterface
      * @return string
      * @throws InvalidConfigException
      */
-    protected function getServiceRoute($route, $params = [])
+    protected function getServiceRoute($route, array $params = []): string
     {
         if (!preg_match("/\//i", $route)) {
             foreach ($this->getRouteRules($route) as $serviceId => $routeRules) {
                 $model = new DynamicModel($params);
                 foreach ($routeRules as $routeRule) {
-                    $model->addRule($routeRule[0], $routeRule[1], isset($routeRule[2]) ? $routeRule[2] : []);
+                    $model->addRule($routeRule[0], $routeRule[1], $routeRule[2] ?? []);
                 }
                 $model->validate();
                 if (!$model->hasErrors()) {
                     return "$serviceId/$route";
                 }
             }
-            throw new InvalidConfigException("API service was not found for the route `$route`.");
+            throw new InvalidConfigException("API service was not found for the route `$route`");
         }
         return $route;
     }
@@ -109,15 +110,15 @@ class APIx extends Module implements BootstrapInterface
     /**
      * @param array $params
      *
-     * @return Connector
+     * @return Service
      */
-    public function getConnector($params = [])
+    public function getService(array $params = []): Service
     {
         $instanceHash = md5(Json::encode($params));
-        if (!isset($this->_connectors[$instanceHash])) {
-            $this->_connectors[$instanceHash] = new Connector($params);
+        if (!isset($this->_services[$instanceHash])) {
+            $this->_services[$instanceHash] = new Service($params);
         }
-        return $this->_connectors[$instanceHash];
+        return $this->_services[$instanceHash];
     }
 
 }
