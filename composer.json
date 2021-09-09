@@ -1,25 +1,13 @@
 {
   "name": "ghiyam/apix",
-  "description": "Yii2 module supporting universal client-server requests to the external API.",
+  "description": "Yii2 module supporting universal client-server requests to the external API",
+  "type": "yii2-extension",
   "keywords": [
     "yii2",
     "module",
     "API"
   ],
-  "type": "yii2-extension",
-  "require": {
-    "php": ">=7.2.0",
-    "php-smpp/php-smpp": "^1.2"
-  },
-  "require-dev": {
-    "yiisoft/yii2": "~2.0.14",
-    "yiisoft/yii2-debug": "~2.0.0"
-  },
-  "autoload": {
-    "psr-4": {
-      "ghiyam\\apix\\": "src/"
-    }
-  },
+  "version": "2.0.0",
   "license": "MIT",
   "authors": [
     {
@@ -27,6 +15,24 @@
       "email": "g.mikadze@lakka.io"
     }
   ],
+  "require": {
+    "php": ">=7.2.0",
+    "php-smpp/php-smpp": "^1.2"
+  },
+  "require-dev": {
+    "yiisoft/yii2": "2.0.17"
+  },
+  "autoload": {
+    "psr-4": {
+      "ghiyam\\apix\\": "src/"
+    }
+  },
+  "config": {
+    "process-timeout": 1800,
+    "fxp-asset": {
+      "enabled": false
+    }
+  },
   "repositories": [
     {
       "type": "composer",
