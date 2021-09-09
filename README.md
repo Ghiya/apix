@@ -1,23 +1,22 @@
 # yii2-apix
-Универсальный плагин динамических клиент-серверных запросов к API внешних сервисов в приложениях [Yii2 framework](https://www.yiiframework.com/).
 
+Универсальный плагин динамических клиент-серверных запросов к API внешних сервисов в
+приложениях [Yii2 framework](https://www.yiiframework.com/).
 
 ## Как это работает?
-Плагин `APIx` является [модулем]() и отвечает при обработке запросов за конфигурацию сервисов API и соответствующий роутинг.
-Каждый сервис представлен [контроллером]() и его [действия]() определяют запросы к API этого сервиса.
- 
 
-## Возможности
+Плагин `APIx` является [модулем](https://www.yiiframework.com/doc/guide/2.0/en/structure-modules) и отвечает при
+обработке запросов за конфигурацию сервисов API и соответствующий роутинг. Каждый сервис
+представлен [контроллером](https://www.yiiframework.com/doc/guide/2.0/en/structure-controllers) и
+его [действия](https://www.yiiframework.com/doc/guide/2.0/en/structure-controllers#actions) определяют запросы к API
+этого сервиса. Плагин содержит объекты интегрированных клиентов для cURL/SOAP/SMPP соединений с API, которые
+предполагается наследовать в конкретных реализациях.
 
-- поддержка REST/SOAP/SMPP типов взаимодействия с API &laquo;out-of-box&raquo;
-- динамический выбор сервиса API в зависимости от параметров запроса
-- построение составных запросов с использованием промежуточных результатов
+## Конфигурация сервисов
 
-
-## Конфигурация сервисов / config
-
-Каждый из сервисов API представляется соответствующим контроллером, поэтому все используемые сервисы конфигурируются в параметре `controllerMap` модуля плагина.
-Действие контроллера должно возвращать массив параметров запроса/запросов [в формате указанном ниже](#queries).
+Каждый из сервисов API представляется соответствующим контроллером, поэтому все используемые сервисы конфигурируются в
+параметре `controllerMap` модуля плагина. Действие контроллера должно возвращать массив параметров запроса/запросов в
+формате указанном ниже.
 
 > Note: Для корректной работы контроллера сервиса API требуется унаследовать его от [\ghiyam\apix\controllers\ServiceController].
 
@@ -34,24 +33,21 @@
                     // API service with REST client example
                     'some_vendor'    =>
                         [
-                            // default controller class is abstract, use implementation instead
+                            // default controller class is abstract, use inheritance instead
                             'class'      => 'ghiyam\apix\controller\ServiceController',
                             'service' =>
                                 [
-                                    'type'   => \ghiyam\apix\Service::TYPE_REST,
-                                    'params' => [
-                                        'credentials' => [],
-                                        'url'         => 'localhost',
-                                        'port'        => '80',
-                                        'uri'         => 'path/to/api/root',
-                                        'secured'     => false,
-                                        'timeout'     => 3,
-                                        'requestType' => \ghiyam\apix\client\RestClient::REQUEST_METHOD_GET
-                                    ]
-                                ],
-                            'routeRules' =>
-                                [
-                                    // ... \yii\base\Model rules here ...
+                                    'client' => [
+                                        // default client class is abstract, use inheritance instead
+                                        'class'         => '\ghiyam\apix\clients\CurlApiClient',
+                                        'credentials'   => [],
+                                        'clientOptions' => [
+                                            'host'    => 'someHost',
+                                            'port'    => 443,
+                                            'uri'     => 'path/to/api/uri',
+                                            'timeout' => 3,
+                                        ]
+                                    ],
                                 ],
                         ],
                     // API service with SOAP client example
@@ -61,15 +57,16 @@
                             'class'      => 'ghiyam\apix\controller\ServiceController',
                             'service' =>
                                 [
-                                    'type'   => \ghiyam\apix\Service::TYPE_SOAP,
-                                    'params' => [
+                                    'client' => [
+                                        // default client class is abstract, use inheritance instead
+                                        'class'       => '\ghiyam\apix\clients\SoapApiClient',
                                         'credentials' => [],
                                         'namespaces'  =>
                                             [
                                                 'header'   => '',
                                                 'envelope' => '',
                                             ],
-                                        'soap'        => [
+                                        'clientOptions' => [
                                             'location'     => '',
                                             'uri'          => '',
                                             'trace'        => true,
@@ -78,14 +75,10 @@
                                             'soap_version' => SOAP_1_1,
                                             'encoding'     => 'UTF-8',
                                         ],
-                                    ]
-                                ],
-                            'routeRules' =>
-                                [
-                                    // ... \yii\base\Model rules here ...
+                                    ],
                                 ],
                         ]
-                    // ... any other REST/SOAP API services ...
+                    // ... any other API clients implementations...
                 ],
             ],
         ],
@@ -95,16 +88,12 @@
 
 ```
 
+## Построение запросов
 
-## Построение запросов / queries
+Каждый запрос должен содержать обязательный параметр `method` и необязательные параметры `params`. Первый содержит
+название метода в обращении к сервису API, второй - его параметры.
 
-Каждый запрос должен содержать обязательный параметр `method` и необязательные параметры `params`. Первый содержит название метода в обращении к сервису API, второй - его параметры.
-Дополнительно каждый запрос может определять служебный параметр `join`, согласно которым он определяется как *обычный* или *составной*.
-
-### Построение обычных запросов
-
-Пример построения обычного запроса
-
+Пример построения запроса
 
 ```
 
@@ -112,66 +101,9 @@
     'method' => '<api_method_name>',
     'params' =>
         [
-            // ... API method params here ...
             '<param_name>' => '<param_value>'
+            // ... API method params here ...
         ]
 ]
 
 ```
-
-### Построение составных запросов
-
-Для указания объединяющего параметра используется специальный формат значения в присоединяемом запросе.
-Если требуется значение параметра из ответа для присоединяемого запроса, то указывается его название в формате `|<params_name|`.
-Если же требуется использование ответа целиком, то применяется формат `|*|`.
-
-Пример построения составного запроса
-
-```
-
-[
-    'method' => '<api_method_name>',
-    'params' =>
-        [
-            // ... API method params here ...
-            '<param_name>' => '<param_value>'
-        ],
-    'join' =>
-        [
-            [
-                'method' => '<joined_api_method_name>',
-                'params' =>
-                    [
-                        '<param_name>' => '<|<joined_param_from_response>|>'
-                        // ... other API method params here ...
-                        '<param_name>' => '<param_value>'
-                    ],
-                'join' =>
-                    [
-                        [
-                            'method' => '<joined_api_method_name>',
-                            'params' =>
-                                [
-                                    // use the whole response instead of one parameter from it
-                                    '<param_name>' => '<|*|>'
-                                    // ... other API method params here ...
-                                    '<param_name>' => '<param_value>'
-                                ],
-                        ],
-                    ]
-            ],
-            [
-                'method' => '<joined_api_method_name>',
-                'params' =>
-                    [
-                        '<param_name>' => '<|<joined_param_from_response>|>'
-                        // ... other API method params here ...
-                        '<param_name>' => '<param_value>'
-                    ],
-            ],
-        ]
-]
-
-```
-
-> Note: При обработке составных запросов формат результирующего ответа определяется форматом результата первого из простых запросов.
