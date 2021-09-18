@@ -1,6 +1,7 @@
 <?php
-/**
- * Copyright (c) 2018-2019. Ghiya <ghiya@mikadze.me>
+/*
+ * @copyright Copyright (c) 2018-2021
+ * @author Ghiya Mikadze <g.mikadze@lakka.io>
  */
 
 
@@ -26,14 +27,14 @@ class UnknownAPIException extends HttpException
      * @param                 $apiActionId
      * @param \Exception|null $previous
      */
-    public function __construct($serviceControllerId, $apiActionId, \Exception $previous = null)
+    public function __construct($serviceControllerId, $apiActionId, \Throwable $previous = null)
     {
         parent::__construct(400, $this->getExceptionMessage($serviceControllerId, $apiActionId), 0, $previous);
     }
 
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function getName()
     {

@@ -1,39 +1,34 @@
 <?php
-/**
- * Copyright (c) 2018-2019. Ghiya <ghiya@mikadze.me>
+/*
+ * @copyright Copyright (c) 2018-2021
+ * @author Ghiya Mikadze <g.mikadze@lakka.io>
  */
 
 
 namespace ghiyam\apix\controllers;
 
 
-use ghiyam\apix\actions\FetchAction;
+use ghiyam\apix\ApiService;
 use ghiyam\apix\APIx;
-use ghiyam\apix\Connector;
 use ghiyam\apix\exceptions\UnknownAPIException;
-use ghiyam\apix\query\Query;
-use yii\base\ActionEvent;
 use yii\base\Controller;
 use yii\base\InvalidRouteException;
-use yii\helpers\Json;
 
 /**
  * Class ServiceController
  *
- * @property-read APIx $module
- * @property-read Connector $connector
+ * @property-read APIx       $module
+ * @property-read ApiService $apiService
  *
  * @package ghiyam\apix\controllers
  */
 abstract class ServiceController extends Controller
 {
 
-
     /**
      * @var string
      */
     public $title = '';
-
 
     /**
      * @var string
@@ -45,35 +40,17 @@ abstract class ServiceController extends Controller
      */
     public $service = [];
 
-
     /**
-     * @var array
-     */
-    public $routeRules = [];
-
-
-    /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function init()
     {
         parent::init();
-        $this->on(
-            self::EVENT_AFTER_ACTION,
-            function (ActionEvent $event) {
-                if ($event->action instanceof FetchAction) {
-                    /** @var FetchAction $fetchAction */
-                    $fetchAction = $event->action;
-                    $event->result = $fetchAction->fetchResult($event->result);
-                    $event->handled = $fetchAction->eventHandled;
-                }
-            }
-        );
+        $this->attachBehavior('fetchAction', FetchActionBehaviour::class);
     }
 
-
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      *
      * @throws UnknownAPIException
      */
@@ -86,26 +63,11 @@ abstract class ServiceController extends Controller
         }
     }
 
-
     /**
-     * @param Query $query
-     *
-     * @throws \ErrorException
-     * @throws \ghiyam\apix\exceptions\ClientRequestException
+     * @return ApiService
      */
-    public function sendQuery(Query &$query)
+    public function getApiService(): ApiService
     {
-        $this->getConnector()->sendRequest($query);
+        return $this->module->getService($this->service);
     }
-
-    /**
-     * Возвращает объект соединения контроллера сервиса API.
-     *
-     * @return Connector
-     */
-    final public function getConnector()
-    {
-        return $this->module->getConnector($this->service);
-    }
-
 }

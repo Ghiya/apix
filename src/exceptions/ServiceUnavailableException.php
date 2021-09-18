@@ -1,6 +1,7 @@
 <?php
-/**
- * Copyright (c) 2018-2019. Ghiya <ghiya@mikadze.me>
+/*
+ * @copyright Copyright (c) 2018-2021
+ * @author Ghiya Mikadze <g.mikadze@lakka.io>
  */
 
 
@@ -31,7 +32,7 @@ class ServiceUnavailableException extends HttpException
 
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
     public function getName()
     {
