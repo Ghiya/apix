@@ -1,4 +1,4 @@
-# yii2-apix
+# apix
 
 Универсальный плагин динамических клиент-серверных запросов к API внешних сервисов в
 приложениях [Yii2 framework](https://www.yiiframework.com/).
