@@ -6,7 +6,6 @@
 
 namespace ghiyam\apix;
 
-
 use Yii;
 use yii\base\BootstrapInterface;
 use yii\base\DynamicModel;
@@ -20,9 +19,7 @@ use yii\helpers\Json;
 /**
  * Class APIx
  *
- *
  * @package ghiyam\apix
- * @version 2.0.0
  */
 class APIx extends Module implements BootstrapInterface
 {
@@ -35,7 +32,7 @@ class APIx extends Module implements BootstrapInterface
 
 
     /**
-     * @var Service[]
+     * @var ApiService[]
      */
     private $_services = [];
 
@@ -110,13 +107,13 @@ class APIx extends Module implements BootstrapInterface
     /**
      * @param array $params
      *
-     * @return Service
+     * @return ApiService
      */
-    public function getService(array $params = []): Service
+    public function getService(array $params = []): ApiService
     {
         $instanceHash = md5(Json::encode($params));
         if (!isset($this->_services[$instanceHash])) {
-            $this->_services[$instanceHash] = new Service($params);
+            $this->_services[$instanceHash] = new ApiService($params);
         }
         return $this->_services[$instanceHash];
     }

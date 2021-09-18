@@ -14,11 +14,12 @@ use yii\base\InvalidConfigException;
 use yii\helpers\ArrayHelper;
 
 /**
- * Class Service
+ * Class ApiService
+ * @property-read ApiClient $apiClient
  *
  * @package ghiyam\apix
  */
-class Service extends BaseObject
+class ApiService extends BaseObject
 {
 
     /**
@@ -65,4 +66,11 @@ class Service extends BaseObject
         return $result;
     }
 
+    /**
+     * @return ApiClient
+     */
+    public function getApiClient(): ApiClient
+    {
+        return $this->_apiClient;
+    }
 }

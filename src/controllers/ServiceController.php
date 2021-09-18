@@ -9,10 +9,10 @@ namespace ghiyam\apix\controllers;
 
 
 use ghiyam\apix\actions\FetchAction;
+use ghiyam\apix\ApiService;
 use ghiyam\apix\APIx;
 use ghiyam\apix\exceptions\ApiClientFetchException;
 use ghiyam\apix\exceptions\UnknownAPIException;
-use ghiyam\apix\Service;
 use yii\base\ActionEvent;
 use yii\base\Controller;
 use yii\base\InvalidRouteException;
@@ -20,8 +20,8 @@ use yii\base\InvalidRouteException;
 /**
  * Class ServiceController
  *
- * @property-read APIx    $module
- * @property-read Service $apiService
+ * @property-read APIx       $module
+ * @property-read ApiService $apiService
  *
  * @package ghiyam\apix\controllers
  */
@@ -82,6 +82,14 @@ abstract class ServiceController extends Controller
      */
     protected function runFetchAction(FetchAction $fetchAction, array $actionResult)
     {
-        return $this->module->getService($this->service)->send($actionResult, $fetchAction->requestType);
+        return $this->getApiService()->send($actionResult, $fetchAction->requestType);
+    }
+
+    /**
+     * @return ApiService
+     */
+    public function getApiService(): ApiService
+    {
+        return $this->module->getService($this->service);
     }
 }
