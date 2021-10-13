@@ -96,9 +96,6 @@ abstract class ApiClient extends BaseObject
      */
     protected function afterFetch($response): ApiResponse
     {
-        if (empty($response)) {
-            throw new ApiClientFetchException("Server response is `NULL`.");
-        }
         $apiResponse = new ApiResponse(['original' => $response]);
         $apiResponse->parsed = $this->prepareResponse($apiResponse);
         return $apiResponse;
