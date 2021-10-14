@@ -1,5 +1,7 @@
 # apix
 
+![2.0.1](https://img.shields.io/static/v1?label=latest&message=2.0.1&color=006E90&style=flat-square)
+
 Универсальный плагин динамических клиент-серверных запросов к API внешних сервисов в
 приложениях [Yii2 framework](https://www.yiiframework.com/).
 
