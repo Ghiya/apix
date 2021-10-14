@@ -78,14 +78,6 @@ abstract class CurlApiClient extends ApiClient
         if (empty($this->host)) {
             throw new InvalidConfigException('Property `host` must be set.');
         }
-        $this->connector = curl_init();
-        curl_setopt_array(
-            $this->connector,
-            [
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_CONNECTTIMEOUT => $this->timeout
-            ]
-        );
     }
 
     /**
@@ -95,6 +87,19 @@ abstract class CurlApiClient extends ApiClient
     public function getInfo()
     {
         return $this->_info;
+    }
+
+    protected function beforeFetch(array $requestData, ?string $requestType = "GET"): ApiRequest
+    {
+        $this->connector = curl_init();
+        curl_setopt_array(
+            $this->connector,
+            [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CONNECTTIMEOUT => $this->timeout
+            ]
+        );
+        return parent::beforeFetch($requestData, $requestType);
     }
 
     protected function afterFetch($response): ApiResponse
@@ -108,8 +113,6 @@ abstract class CurlApiClient extends ApiClient
      */
     public function prepareRequest(ApiRequest $apiRequest)
     {
-        // для этого клиента хранит конфигурацию curl соединения
-        $curlOptions = [];
         // switch request type
         switch ($apiRequest->type) {
 
