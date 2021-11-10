@@ -61,7 +61,7 @@ final class ApiRequest extends \yii\base\BaseObject
             throw new InvalidConfigException("Parameter `data['params']` must be type of array");
         }
         if (!in_array($this->type, $this->_allowedTypes)) {
-            throw new InvalidConfigException("Parameter 'type' must be one of " . join(", 0", $this->_allowedTypes));
+            throw new InvalidConfigException("Parameter 'type' must be one of " . join(", ", $this->_allowedTypes));
         }
     }
 
