@@ -13,6 +13,7 @@ use ghiyam\apix\exceptions\ApiClientFetchException;
 use Yii;
 use yii\base\BaseObject;
 use yii\base\InvalidConfigException;
+use yii\web\HttpException;
 
 /**
  * Class ApiClient
@@ -92,7 +93,6 @@ abstract class ApiClient extends BaseObject
     /**
      * @param $response
      * @return ApiResponse
-     * @throws ApiClientFetchException
      */
     protected function afterFetch($response): ApiResponse
     {
@@ -122,7 +122,11 @@ abstract class ApiClient extends BaseObject
             $apiResponse = $this->afterFetch($response);
             return $apiResponse->parsed;
         } catch (Exception $exception) {
-            throw new ApiClientFetchException($exception->getMessage());
+            if ( $exception instanceof HttpException ) {
+                throw $exception;
+            } else {
+                throw new ApiClientFetchException($exception->getMessage());
+            }
         }
     }
 
