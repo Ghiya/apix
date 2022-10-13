@@ -168,6 +168,7 @@ abstract class CurlApiClient extends ApiClient
      */
     public function sendRequest(ApiRequest $apiRequest)
     {
+        // print_r($apiRequest->original);die;
         curl_setopt_array($this->connector, $apiRequest->original);
         $result = curl_exec($this->connector);
         $this->_info = curl_getinfo($this->connector);
