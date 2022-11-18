@@ -1,6 +1,6 @@
 # APIx
 
-![2.0.4](https://img.shields.io/static/v1?label=latest&message=2.0.4&color=006E90&style=flat-square)
+![2.0.5](https://img.shields.io/static/v1?label=latest&message=2.0.5&color=006E90&style=flat-square)
 
 Универсальный плагин динамических клиент-серверных запросов к API внешних сервисов в
 приложениях [Yii2 framework](https://www.yiiframework.com/).
@@ -20,7 +20,8 @@
 параметре `controllerMap` модуля плагина. Действие контроллера должно возвращать массив параметров запроса/запросов в
 формате указанном ниже.
 
-> Note: Для корректной работы контроллера сервиса API требуется унаследовать его от [\ghiyam\apix\controllers\ServiceController].
+> Note: Для корректной работы контроллера сервиса API требуется унаследовать его
+> от [\ghiyam\apix\controllers\ServiceController].
 
 ```php
 
