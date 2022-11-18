@@ -1,6 +1,6 @@
 <?php
 /*
- * @copyright Copyright (c) 2018-2021
+ * @copyright Copyright (c) 2018-2022
  * @author Ghiya Mikadze <g.mikadze@lakka.io>
  */
 
@@ -118,10 +118,29 @@ abstract class SmppApiClient extends ApiClient
      */
     public function prepareRequest(ApiRequest $apiRequest)
     {
+        $fromOptions = $this->_getFromOptions($apiRequest->method);
         return [
-            'from' => new SmppAddress($apiRequest->method, SMPP::TON_ALPHANUMERIC),
+            'from' => new SmppAddress($apiRequest->method, $fromOptions['ton'], $fromOptions['npi']),
             'to'   => new SmppAddress($apiRequest->params['to'], SMPP::TON_INTERNATIONAL, SMPP::NPI_E164),
             'text' => mb_convert_encoding(trim(strip_tags(Html::decode($apiRequest->params['text']))), "UCS-2BE"),
+        ];
+    }
+
+    /**
+     * @param string $from
+     * @return array
+     */
+    private function _getFromOptions(string $from): array
+    {
+        if (strlen(preg_replace("/\D/", "", $from)) == strlen($from)) {
+            return [
+                'ton' => SMPP::TON_INTERNATIONAL,
+                'npi' => SMPP::NPI_E164
+            ];
+        }
+        return [
+            'ton' => SMPP::TON_ALPHANUMERIC,
+            'npi' => null
         ];
     }
 
