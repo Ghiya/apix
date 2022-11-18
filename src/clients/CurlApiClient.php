@@ -1,6 +1,6 @@
 <?php
 /*
- * @copyright Copyright (c) 2018-2021
+ * @copyright Copyright (c) 2018-2022
  * @author Ghiya Mikadze <g.mikadze@lakka.io>
  */
 
@@ -19,6 +19,7 @@ use yii\helpers\ArrayHelper;
  *
  * @property-read resource $connector cURL handler
  * @property-read array    $info      cURL request info
+ * @property-read string   $error     cURL request error
  *
  * @package ghiyam\apix\clients
  */
@@ -70,6 +71,11 @@ abstract class CurlApiClient extends ApiClient
     private $_info;
 
     /**
+     * @var mixed
+     */
+    private $_error;
+
+    /**
      * @throws InvalidConfigException
      */
     public function init()
@@ -87,6 +93,15 @@ abstract class CurlApiClient extends ApiClient
     public function getInfo()
     {
         return $this->_info;
+    }
+
+    /**
+     * Возвращает информацию об ошибке curl соединения.
+     * @return mixed
+     */
+    public function getError()
+    {
+        return $this->_error;
     }
 
     protected function beforeFetch(array $requestData, ?string $requestType = "GET"): ApiRequest
@@ -168,10 +183,10 @@ abstract class CurlApiClient extends ApiClient
      */
     public function sendRequest(ApiRequest $apiRequest)
     {
-        // print_r($apiRequest->original);die;
         curl_setopt_array($this->connector, $apiRequest->original);
         $result = curl_exec($this->connector);
         $this->_info = curl_getinfo($this->connector);
+        $this->_error = curl_error($this->connector);
         return $result;
     }
 
