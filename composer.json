@@ -19,7 +19,7 @@
     "php-smpp/php-smpp": "^1.2"
   },
   "require-dev": {
-    "yiisoft/yii2": "2.0.17"
+    "yiisoft/yii2": "2.0.47"
   },
   "autoload": {
     "psr-4": {
