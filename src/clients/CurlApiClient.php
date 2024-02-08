@@ -1,6 +1,6 @@
 <?php
 /*
- * @copyright Copyright (c) 2018-2022
+ * @copyright Copyright (c) 2018-2024
  * @author Ghiya Mikadze <g.mikadze@lakka.io>
  */
 
@@ -50,6 +50,11 @@ abstract class CurlApiClient extends ApiClient
      * @var int
      */
     public $timeout = 3;
+
+    /**
+     * @var int
+     */
+    public $execTimeout = 10;
 
     /**
      * @var array
@@ -107,13 +112,6 @@ abstract class CurlApiClient extends ApiClient
     protected function beforeFetch(array $requestData, ?string $requestType = "GET"): ApiRequest
     {
         $this->connector = curl_init();
-        curl_setopt_array(
-            $this->connector,
-            [
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_CONNECTTIMEOUT => $this->timeout
-            ]
-        );
         return parent::beforeFetch($requestData, $requestType);
     }
 
@@ -140,7 +138,7 @@ abstract class CurlApiClient extends ApiClient
                     [
                         CURLOPT_URL           => $this->getServerUrl() . "/$apiRequest->method",
                         CURLOPT_CUSTOMREQUEST => $apiRequest->type,
-                        CURLOPT_POSTFIELDS    => $params
+                        CURLOPT_POSTFIELDS    => $params,
                     ];
                 break;
 
@@ -161,7 +159,6 @@ abstract class CurlApiClient extends ApiClient
                             !empty($apiRequest->params) ?
                                 $this->getServerUrl() . "/$apiRequest->method?" . http_build_query($apiRequest->params) :
                                 $this->getServerUrl() . "/$apiRequest->method",
-                        // CURLOPT_POST => false,
                         CURLOPT_CUSTOMREQUEST => $apiRequest->type,
                     ];
                 break;
@@ -171,6 +168,11 @@ abstract class CurlApiClient extends ApiClient
         }
         return
             ArrayHelper::merge(
+                [
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_CONNECTTIMEOUT => $this->timeout,
+                    CURLOPT_TIMEOUT        => $this->execTimeout,
+                ],
                 $curlOptions,
                 $this->clientOptions
             );
@@ -195,7 +197,6 @@ abstract class CurlApiClient extends ApiClient
      */
     abstract function prepareResponse(ApiResponse $apiResponse);
 
-
     /**
      * @return string
      */
@@ -204,28 +205,5 @@ abstract class CurlApiClient extends ApiClient
         $serverUrl = !empty($this->port) ? "$this->host:$this->port" : $this->host;
         $serverUrl .= !empty($this->uri) ? "/$this->uri" : "";
         return $serverUrl;
-    }
-
-    /**
-     * @return bool
-     * @todo имплементировать корректно или удалить в дальнейшем
-     */
-    private function _checkConnection()
-    {
-        if ($this->emulate || !$this->checkConnection) {
-            return true;
-        }
-        $fp = @fsockopen(
-            'tcp://' . $this->host,
-            80,
-            $errCode,
-            $errStr,
-            1
-        );
-        if ($fp) {
-            fclose($fp);
-            return true;
-        }
-        return false;
     }
 }
